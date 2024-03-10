@@ -25,7 +25,6 @@ import org.eclipse.swtchart.IAxis;
 import org.eclipse.swtchart.IAxis.Position;
 import org.eclipse.swtchart.IBarSeries;
 import org.eclipse.swtchart.ICustomPaintListener;
-import org.eclipse.swtchart.IPlotArea;
 import org.eclipse.swtchart.ISeries;
 import org.eclipse.swtchart.ISeries.SeriesType;
 import org.eclipse.swtchart.LineStyle;
@@ -267,7 +266,7 @@ public class ActivityWidget extends WidgetDelegate<List<TransactionPair<?>>>
         yAxis.setPosition(Position.Secondary);
 
         chart.addTraverseListener(event -> event.doit = true);
-        ((IPlotArea) chart.getPlotArea()).addCustomPaintListener(new TimeGridPaintListener(chart));
+        chart.getPlotArea().addCustomPaintListener(new TimeGridPaintListener(chart));
 
         container.layout();
 

@@ -21,6 +21,6 @@ public class PlainChart extends Chart // NOSONAR
 
         // fix: never force focus on the legend but focus the plot area instead
 
-        return getPlotArea().setFocus();
+        return getPlotArea().getControl().setFocus();
     }
 }
