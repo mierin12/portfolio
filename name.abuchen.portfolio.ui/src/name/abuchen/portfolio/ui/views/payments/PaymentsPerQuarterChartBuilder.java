@@ -5,25 +5,26 @@ import java.util.function.Consumer;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.swtchart.Chart;
-import org.swtchart.IAxis;
-import org.swtchart.IAxis.Position;
-import org.swtchart.IBarSeries;
-import org.swtchart.ISeries.SeriesType;
-import org.swtchart.LineStyle;
+import org.eclipse.swtchart.Chart;
+import org.eclipse.swtchart.IAxis;
+import org.eclipse.swtchart.IAxis.Position;
+import org.eclipse.swtchart.IBarSeries;
+import org.eclipse.swtchart.ISeries.SeriesType;
+import org.eclipse.swtchart.LineStyle;
 
 import name.abuchen.portfolio.money.Values;
 import name.abuchen.portfolio.ui.Messages;
+import name.abuchen.portfolio.ui.UIConstants;
 import name.abuchen.portfolio.ui.util.TabularDataSource;
 import name.abuchen.portfolio.ui.util.TabularDataSource.Column;
-import name.abuchen.portfolio.ui.util.chart.TimelineChartToolTip;
+import name.abuchen.portfolio.ui.util.chart.TimelineChartToolTipYearly;
 import name.abuchen.portfolio.ui.util.format.ThousandsNumberFormat;
 import name.abuchen.portfolio.ui.views.payments.PaymentsViewModel.Line;
 import name.abuchen.portfolio.util.TextUtil;
 
 public class PaymentsPerQuarterChartBuilder implements PaymentsChartBuilder
 {
-    private static class DividendPerQuarterChartToolTip extends TimelineChartToolTip
+    private static class DividendPerQuarterChartToolTip extends TimelineChartToolTipYearly
     {
         private Consumer<TabularDataSource> selectionListener;
 
@@ -38,11 +39,12 @@ public class PaymentsPerQuarterChartBuilder implements PaymentsChartBuilder
         @Override
         protected void createComposite(Composite parent)
         {
-            PaymentsViewModel model = (PaymentsViewModel) getChart().getData(PaymentsViewModel.class.getSimpleName());
+            PaymentsViewModel model = (PaymentsViewModel) getSWTChart()
+                            .getData(PaymentsViewModel.class.getSimpleName());
 
             int quarter = (Integer) getFocusedObject();
 
-            IAxis xAxis = getChart().getAxisSet().getXAxes()[0];
+            IAxis xAxis = getSWTChart().getAxisSet().getXAxes()[0];
             TabularDataSource source = new TabularDataSource(
                             Messages.LabelPaymentsPerQuarter + " - " + xAxis.getCategorySeries()[quarter], //$NON-NLS-1$
                             builder -> buildTabularData(model, quarter, builder));
@@ -143,6 +145,8 @@ public class PaymentsPerQuarterChartBuilder implements PaymentsChartBuilder
     @Override
     public void configure(Chart chart, Consumer<TabularDataSource> selectionListener)
     {
+        chart.setData(UIConstants.CSS.CLASS_NAME, "chart"); //$NON-NLS-1$
+
         IAxis xAxis = chart.getAxisSet().getXAxis(0);
         xAxis.getTick().setVisible(true);
         xAxis.getTitle().setVisible(false);
@@ -182,7 +186,8 @@ public class PaymentsPerQuarterChartBuilder implements PaymentsChartBuilder
         {
             int year = model.getStartYear() + (index / 12);
 
-            IBarSeries barSeries = (IBarSeries) chart.getSeriesSet().createSeries(SeriesType.BAR, String.valueOf(year));
+            IBarSeries<?> barSeries = (IBarSeries<?>) chart.getSeriesSet().createSeries(SeriesType.BAR,
+                            String.valueOf(year));
 
             double[] series = new double[Math.min(12, model.getNoOfMonths() - index)];
             for (int ii = 0; ii < series.length; ii++)

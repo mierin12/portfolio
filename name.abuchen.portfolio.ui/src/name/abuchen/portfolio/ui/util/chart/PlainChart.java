@@ -1,7 +1,7 @@
 package name.abuchen.portfolio.ui.util.chart;
 
 import org.eclipse.swt.widgets.Composite;
-import org.swtchart.Chart;
+import org.eclipse.swtchart.Chart;
 
 public class PlainChart extends Chart // NOSONAR
 {

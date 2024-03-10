@@ -6,26 +6,26 @@ import java.util.function.Consumer;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
-import org.swtchart.Chart;
-import org.swtchart.IAxis;
-import org.swtchart.IAxis.Position;
-import org.swtchart.IBarSeries;
-import org.swtchart.ISeries.SeriesType;
-import org.swtchart.LineStyle;
+import org.eclipse.swtchart.Chart;
+import org.eclipse.swtchart.IAxis;
+import org.eclipse.swtchart.IAxis.Position;
+import org.eclipse.swtchart.IBarSeries;
+import org.eclipse.swtchart.ISeries.SeriesType;
+import org.eclipse.swtchart.LineStyle;
 
 import name.abuchen.portfolio.money.Values;
 import name.abuchen.portfolio.ui.Messages;
-import name.abuchen.portfolio.ui.util.Colors;
+import name.abuchen.portfolio.ui.UIConstants;
 import name.abuchen.portfolio.ui.util.TabularDataSource;
 import name.abuchen.portfolio.ui.util.TabularDataSource.Column;
-import name.abuchen.portfolio.ui.util.chart.TimelineChartToolTip;
+import name.abuchen.portfolio.ui.util.chart.TimelineChartToolTipYearly;
 import name.abuchen.portfolio.ui.util.format.ThousandsNumberFormat;
 import name.abuchen.portfolio.ui.views.payments.PaymentsViewModel.Line;
 import name.abuchen.portfolio.util.TextUtil;
 
 public class PaymentsPerYearChartBuilder implements PaymentsChartBuilder
 {
-    private static class DividendPerYearToolTip extends TimelineChartToolTip
+    private static class DividendPerYearToolTip extends TimelineChartToolTipYearly
     {
         private Consumer<TabularDataSource> selectionListener;
 
@@ -40,7 +40,8 @@ public class PaymentsPerYearChartBuilder implements PaymentsChartBuilder
         @Override
         protected void createComposite(Composite parent)
         {
-            PaymentsViewModel model = (PaymentsViewModel) getChart().getData(PaymentsViewModel.class.getSimpleName());
+            PaymentsViewModel model = (PaymentsViewModel) getSWTChart()
+                            .getData(PaymentsViewModel.class.getSimpleName());
 
             int year = (Integer) getFocusedObject();
 
@@ -51,6 +52,7 @@ public class PaymentsPerYearChartBuilder implements PaymentsChartBuilder
             source.createPlainComposite(parent);
 
             selectionListener.accept(source);
+
         }
 
         private void buildTabularData(PaymentsViewModel model, int year, TabularDataSource.Builder builder)
@@ -113,6 +115,8 @@ public class PaymentsPerYearChartBuilder implements PaymentsChartBuilder
     @Override
     public void configure(Chart chart, Consumer<TabularDataSource> selectionListener)
     {
+        chart.setData(UIConstants.CSS.CLASS_NAME, "chart"); //$NON-NLS-1$
+
         IAxis xAxis = chart.getAxisSet().getXAxis(0);
         xAxis.getTick().setVisible(true);
         xAxis.getTitle().setVisible(false);
@@ -140,7 +144,7 @@ public class PaymentsPerYearChartBuilder implements PaymentsChartBuilder
 
         double[] series = new double[LocalDate.now().getYear() - startYear + 1];
 
-        boolean hasNegativeNumber = false;
+        // boolean hasNegativeNumber = false;
 
         for (int index = 0; index < model.getNoOfMonths(); index += 12)
         {
@@ -153,26 +157,23 @@ public class PaymentsPerYearChartBuilder implements PaymentsChartBuilder
                 total += model.getSum().getValue(index + ii);
 
             series[year] = total / Values.Amount.divider();
-
-            if (total < 0L)
-                hasNegativeNumber = true;
+            /*
+             * if (total < 0L) hasNegativeNumber = true;
+             */
         }
-
-        if (hasNegativeNumber)
-        {
-            IBarSeries barSeries = (IBarSeries) chart.getSeriesSet().createSeries(SeriesType.BAR,
-                            Messages.LabelPaymentsPerYear);
-            barSeries.setYSeries(series);
-            barSeries.setBarColor(Colors.DARK_BLUE);
-        }
-        else
-        {
+        /*
+         * if (hasNegativeNumber) { IBarSeries<?> barSeries = (IBarSeries<?>)
+         * chart.getSeriesSet().createSeries(SeriesType.BAR,
+         * Messages.LabelPaymentsPerYear); barSeries.setYSeries(series);
+         * barSeries.setBarColor(Colors.DARK_BLUE); } else {
+         */
             // reverse the order because stacked series are sorted in reverse
             // order in the legend by SWTChart
-            for (int i = series.length - 1; i >= 0; i--)
+            // for (int i = series.length - 1; i >= 0; i--)
+            for (int i = 0; i <= series.length - 1; i++)
             {
                 int year = model.getStartYear() + i;
-                IBarSeries barSeries = (IBarSeries) chart.getSeriesSet().createSeries(SeriesType.BAR,
+                IBarSeries<?> barSeries = (IBarSeries<?>) chart.getSeriesSet().createSeries(SeriesType.BAR,
                                 String.valueOf(year));
 
                 double[] seriesX = new double[LocalDate.now().getYear() - startYear + 1];
@@ -182,7 +183,8 @@ public class PaymentsPerYearChartBuilder implements PaymentsChartBuilder
 
                 barSeries.setBarColor(PaymentsColors.getColor(year));
                 barSeries.setBarPadding(25);
-                barSeries.enableStack(true);
+                // barSeries.enableStack(true);
+                barSeries.setBarOverlay(true);
             }
 
             // Un-suspend chart to force SWTChart to update the stackSeries.
@@ -193,7 +195,7 @@ public class PaymentsPerYearChartBuilder implements PaymentsChartBuilder
                 chart.suspendUpdate(false);
                 chart.suspendUpdate(true);
             }
-        }
+            // }
     }
 
     private void updateCategorySeries(Chart chart, PaymentsViewModel model)
