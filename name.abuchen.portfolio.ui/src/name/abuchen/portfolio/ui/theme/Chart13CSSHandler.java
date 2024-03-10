@@ -96,7 +96,6 @@ public class Chart13CSSHandler extends AbstractCSSPropertySWTHandler implements 
             return cssValueConverter.convert(chart.getPlotArea().getBackground(), engine, null);
         }
 
-
         return null;
     }
 
