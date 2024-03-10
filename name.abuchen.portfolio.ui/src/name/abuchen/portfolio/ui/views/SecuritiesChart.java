@@ -39,15 +39,15 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
-import org.swtchart.IAxis;
-import org.swtchart.IAxis.Position;
-import org.swtchart.ILegend;
-import org.swtchart.ILineSeries;
-import org.swtchart.ILineSeries.PlotSymbolType;
-import org.swtchart.ISeries;
-import org.swtchart.ISeries.SeriesType;
-import org.swtchart.LineStyle;
-import org.swtchart.Range;
+import org.eclipse.swtchart.IAxis;
+import org.eclipse.swtchart.IAxis.Position;
+import org.eclipse.swtchart.ILegend;
+import org.eclipse.swtchart.ILineSeries;
+import org.eclipse.swtchart.ILineSeries.PlotSymbolType;
+import org.eclipse.swtchart.ISeries;
+import org.eclipse.swtchart.ISeries.SeriesType;
+import org.eclipse.swtchart.LineStyle;
+import org.eclipse.swtchart.Range;
 
 import com.google.common.primitives.Doubles;
 
@@ -76,7 +76,7 @@ import name.abuchen.portfolio.ui.util.Colors;
 import name.abuchen.portfolio.ui.util.DropDown;
 import name.abuchen.portfolio.ui.util.SimpleAction;
 import name.abuchen.portfolio.ui.util.chart.TimelineChart;
-import name.abuchen.portfolio.ui.util.chart.TimelineChartToolTip;
+import name.abuchen.portfolio.ui.util.chart.TimelineChartToolTipYearly;
 import name.abuchen.portfolio.ui.views.securitychart.SharesHeldChartSeries;
 import name.abuchen.portfolio.util.FormatHelper;
 import name.abuchen.portfolio.util.Interval;
@@ -428,7 +428,7 @@ public class SecuritiesChart
 
         chart.addPlotPaintListener(event -> customPaintListeners.forEach(l -> l.paintControl(event)));
         chart.addPlotPaintListener(this.messagePainter);
-        chart.getPlotArea().addDisposeListener(this.messagePainter);
+        chart.getPlotArea().getControl().addDisposeListener(this.messagePainter);
 
         messagePainter.setMessage(Messages.SecuritiesChart_NoDataMessage_NoSecuritySelected);
 
@@ -521,7 +521,7 @@ public class SecuritiesChart
 
     private void setupTooltip()
     {
-        TimelineChartToolTip toolTip = chart.getToolTip();
+        TimelineChartToolTipYearly toolTip = chart.getToolTip();
 
         toolTip.showToolTipOnlyForDatesInDataSeries(Messages.ColumnQuote);
 

@@ -10,7 +10,7 @@ import org.eclipse.e4.ui.internal.css.swt.definition.IFontDefinitionOverridable;
 import org.eclipse.e4.ui.internal.css.swt.definition.IThemesExtension;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Tree;
-// import org.swtchart.Chart;
+import org.eclipse.swtchart.Chart;
 import org.w3c.dom.Element;
 
 import name.abuchen.portfolio.ui.editor.Sidebar;
@@ -21,15 +21,6 @@ import name.abuchen.portfolio.ui.views.SecuritiesChart;
 @SuppressWarnings("restriction")
 public class ElementProvider implements IElementProvider
 {
-    /*
-     * private org.swtchart.Chart chartV10 = null; private
-     * org.eclipse.swtchart.Chart chartV13 = null; protected
-     * ElementProvider(org.swtchart.Chart chart) { this(chart, null); }
-     * protected ElementProvider(org.eclipse.swtchart.Chart chart) { this(null,
-     * chart); } private ElementProvider(org.swtchart.Chart chartV10,
-     * org.eclipse.swtchart.Chart chartV13) { this.chartV10 = chartV10;
-     * this.chartV13 = chartV13; }
-     */
     @Override
     public Element getElement(Object element, CSSEngine engine)
     {
@@ -41,10 +32,8 @@ public class ElementProvider implements IElementProvider
             return new ThemesExtensionElement(themesExtension, engine);
         if (element instanceof Sidebar)
             return new SidebarElementAdapter((Sidebar<?>) element, engine);
-        if (element instanceof org.swtchart.Chart chartv10)
-            return new ChartElementAdapter(chartv10, engine);
-        if (element instanceof org.eclipse.swtchart.Chart chartv13)
-            return new Chart13ElementAdapter(chartv13, engine);
+        if (element instanceof Chart chart)
+            return new ChartElementAdapter(chart, engine);
         if (element instanceof Colors.Theme colorsTheme)
             return new ColorsThemeElementAdapter(colorsTheme, engine);
         if (element instanceof Table table)

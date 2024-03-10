@@ -3,8 +3,8 @@ package name.abuchen.portfolio.ui.views.dataseries;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.swt.graphics.Color;
-import org.swtchart.IBarSeries;
-import org.swtchart.ILineSeries;
+import org.eclipse.swtchart.IBarSeries;
+import org.eclipse.swtchart.ILineSeries;
 
 import name.abuchen.portfolio.ui.util.chart.TimelineChart;
 
@@ -42,6 +42,7 @@ public abstract class AbstractChartSeriesBuilder
         lineSeries.enableArea(series.isShowArea());
         lineSeries.setLineStyle(series.getLineStyle());
         lineSeries.setLineWidth(series.getLineWidth());
+
     }
 
     protected void configure(DataSeries series, IBarSeries barSeries)
