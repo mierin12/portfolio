@@ -17,7 +17,7 @@ import name.abuchen.portfolio.money.Values;
 import name.abuchen.portfolio.ui.Messages;
 import name.abuchen.portfolio.ui.UIConstants;
 import name.abuchen.portfolio.ui.util.TabularDataSource;
-import name.abuchen.portfolio.ui.util.chart.TimelineChartToolTipYearly;
+import name.abuchen.portfolio.ui.util.chart.TimelineChartToolTip;
 import name.abuchen.portfolio.ui.util.format.AmountNumberFormat;
 
 public class PaymentsAccumulatedChartBuilder implements PaymentsChartBuilder
@@ -45,7 +45,7 @@ public class PaymentsAccumulatedChartBuilder implements PaymentsChartBuilder
         // format symbols returns 13 values as some calendars have 13 months
         xAxis.setCategorySeries(Arrays.copyOfRange(new DateFormatSymbols().getMonths(), 0, 12));
 
-        TimelineChartToolTipYearly toolTip = new TimelineChartToolTipYearly(chart);
+        TimelineChartToolTip toolTip = new TimelineChartToolTip(chart);
         toolTip.enableCategory(true);
         toolTip.setDefaultValueFormat(new AmountNumberFormat());
     }

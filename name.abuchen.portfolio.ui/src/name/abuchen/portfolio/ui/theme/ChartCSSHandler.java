@@ -9,6 +9,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swtchart.Chart;
 import org.eclipse.swtchart.IAxis;
 import org.eclipse.swtchart.ILegend;
+import org.eclipse.swtchart.IPlotArea;
 import org.eclipse.swtchart.ITitle;
 import org.w3c.dom.css.CSSValue;
 
@@ -69,7 +70,7 @@ public class ChartCSSHandler extends AbstractCSSPropertySWTHandler implements IC
 
             chart.setBackground(newColor);
 
-            Control plotArea = chart.getPlotArea().getControl();
+            IPlotArea plotArea = chart.getPlotArea();
             if (plotArea != null)
                 plotArea.setBackground(newColor);
             ILegend legend = chart.getLegend();
@@ -110,7 +111,7 @@ public class ChartCSSHandler extends AbstractCSSPropertySWTHandler implements IC
         else if (BACKGROUND_COLOR.equalsIgnoreCase(property))
         {
             ICSSValueConverter cssValueConverter = engine.getCSSValueConverter(String.class);
-            return cssValueConverter.convert(chart.getPlotArea().getControl().getBackground(), engine, null);
+            return cssValueConverter.convert(chart.getPlotArea().getBackground(), engine, null);
         }
         else if (MEASUREMENT_COLOR.equalsIgnoreCase(property) && chart instanceof TimelineChart timelineChart)
         {

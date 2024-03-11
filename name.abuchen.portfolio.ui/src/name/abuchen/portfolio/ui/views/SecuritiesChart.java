@@ -76,7 +76,7 @@ import name.abuchen.portfolio.ui.util.Colors;
 import name.abuchen.portfolio.ui.util.DropDown;
 import name.abuchen.portfolio.ui.util.SimpleAction;
 import name.abuchen.portfolio.ui.util.chart.TimelineChart;
-import name.abuchen.portfolio.ui.util.chart.TimelineChartToolTipYearly;
+import name.abuchen.portfolio.ui.util.chart.TimelineChartToolTip;
 import name.abuchen.portfolio.ui.views.securitychart.SharesHeldChartSeries;
 import name.abuchen.portfolio.util.FormatHelper;
 import name.abuchen.portfolio.util.Interval;
@@ -521,7 +521,7 @@ public class SecuritiesChart
 
     private void setupTooltip()
     {
-        TimelineChartToolTipYearly toolTip = chart.getToolTip();
+        TimelineChartToolTip toolTip = chart.getToolTip();
 
         toolTip.showToolTipOnlyForDatesInDataSeries(Messages.ColumnQuote);
 

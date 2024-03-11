@@ -16,18 +16,17 @@ import org.eclipse.swtchart.LineStyle;
 
 import name.abuchen.portfolio.money.Values;
 import name.abuchen.portfolio.ui.Messages;
-import name.abuchen.portfolio.ui.UIConstants;
 import name.abuchen.portfolio.ui.util.TabularDataSource;
 import name.abuchen.portfolio.ui.util.TabularDataSource.Builder;
 import name.abuchen.portfolio.ui.util.TabularDataSource.Column;
-import name.abuchen.portfolio.ui.util.chart.TimelineChartToolTipYearly;
+import name.abuchen.portfolio.ui.util.chart.TimelineChartToolTip;
 import name.abuchen.portfolio.ui.util.format.ThousandsNumberFormat;
 import name.abuchen.portfolio.ui.views.payments.PaymentsViewModel.Line;
 import name.abuchen.portfolio.util.TextUtil;
 
 public class PaymentsPerMonthChartBuilder implements PaymentsChartBuilder
 {
-    private static class DividendPerMonthChartToolTip extends TimelineChartToolTipYearly
+    private static class DividendPerMonthChartToolTip extends TimelineChartToolTip
     {
         private Consumer<TabularDataSource> selectionListener;
 
@@ -126,7 +125,7 @@ public class PaymentsPerMonthChartBuilder implements PaymentsChartBuilder
     @Override
     public void configure(Chart chart, Consumer<TabularDataSource> selectionListener)
     {
-        chart.setData(UIConstants.CSS.CLASS_NAME, "chart"); //$NON-NLS-1$
+        // chart.setData(UIConstants.CSS.CLASS_NAME, "chart"); //$NON-NLS-1$
 
         IAxis xAxis = chart.getAxisSet().getXAxis(0);
         xAxis.getTick().setVisible(true);

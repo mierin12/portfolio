@@ -80,7 +80,7 @@ public class TimelineChart extends Chart // NOSONAR
     private Map<Object, IAxis> addedAxis = new HashMap<>();
 
     private ChartToolsManager chartTools;
-    private TimelineChartToolTipYearly toolTip;
+    private TimelineChartToolTip toolTip;
     private ChartContextMenu contextMenu;
 
     public TimelineChart(Composite parent)
@@ -137,7 +137,7 @@ public class TimelineChart extends Chart // NOSONAR
 
         getPlotArea().getControl().addPaintListener(this::paintMarkerLines);
 
-        toolTip = new TimelineChartToolTipYearly(this);
+        toolTip = new TimelineChartToolTip(this);
 
         chartTools = new ChartToolsManager(this);
 
@@ -236,7 +236,7 @@ public class TimelineChart extends Chart // NOSONAR
         return barSeries;
     }
 
-    public TimelineChartToolTipYearly getToolTip()
+    public TimelineChartToolTip getToolTip()
     {
         return toolTip;
     }

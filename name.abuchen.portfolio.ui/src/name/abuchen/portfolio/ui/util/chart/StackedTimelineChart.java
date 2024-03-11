@@ -26,7 +26,7 @@ import name.abuchen.portfolio.util.Dates;
 
 public class StackedTimelineChart extends Chart // NOSONAR
 {
-    private TimelineChartToolTipYearly toolTip;
+    private TimelineChartToolTip toolTip;
 
     private List<LocalDate> dates;
 
@@ -68,7 +68,7 @@ public class StackedTimelineChart extends Chart // NOSONAR
             }
         });
 
-        toolTip = new TimelineChartToolTipYearly(this);
+        toolTip = new TimelineChartToolTip(this);
         toolTip.enableCategory(true);
         toolTip.reverseLabels(true);
         toolTip.setXAxisFormat(obj -> {
@@ -108,7 +108,7 @@ public class StackedTimelineChart extends Chart // NOSONAR
         return series;
     }
 
-    public TimelineChartToolTipYearly getToolTip()
+    public TimelineChartToolTip getToolTip()
     {
         return toolTip;
     }
