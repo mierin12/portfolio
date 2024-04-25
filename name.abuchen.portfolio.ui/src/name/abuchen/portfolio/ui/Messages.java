@@ -205,6 +205,11 @@ public class Messages extends NLS
     public static String ColumnForeignCurrencies;
     public static String ColumnGrossDividend;
     public static String ColumnGrossProfitLoss;
+    public static String ColumnGrossPurchasePriceFIFO;
+    public static String ColumnGrossPurchasePriceFIFO_Description;
+    public static String ColumnGrossPurchasePriceMovingAverage;
+    public static String ColumnGrossPurchasePriceMovingAverage_Description;
+    public static String ColumnGrossPurchasePriceMovingAverage_MenuLabel;
     public static String ColumnGrossValue;
     public static String ColumnHeight;
     public static String ColumnHoldingPeriod;

@@ -543,8 +543,31 @@ public class StatementOfAssetsViewer
 
         column = new Column("ppmvavg", Messages.ColumnPurchasePriceMovingAverage, SWT.RIGHT, 60); //$NON-NLS-1$
         column.setDescription(Messages.ColumnPurchasePriceMovingAverage_Description);
+        column.setMenuLabel(Messages.ColumnPurchasePriceMovingAverage_MenuLabel);
         labelProvider = new ReportingPeriodLabelProvider(new ElementValueProvider(
                         LazySecurityPerformanceRecord::getMovingAverageCostPerSharesHeld, null), false);
+        column.setLabelProvider(labelProvider);
+        column.setSorter(ColumnViewerSorter.create(new ElementComparator(labelProvider)));
+        column.setVisible(false);
+        support.addColumn(column);
+
+        column = new Column("grossPurchasePriceFIFO", Messages.ColumnGrossPurchasePriceFIFO, SWT.RIGHT, 60); //$NON-NLS-1$
+        column.setDescription(Messages.ColumnGrossPurchasePriceFIFO_Description);
+        labelProvider = new ReportingPeriodLabelProvider(
+                        new ElementValueProvider(LazySecurityPerformanceRecord::getGrossFifoCostPerSharesHeld, null),
+                        false);
+        column.setLabelProvider(labelProvider);
+        column.setSorter(ColumnViewerSorter.create(new ElementComparator(labelProvider)));
+        column.setVisible(false);
+        support.addColumn(column);
+
+        column = new Column("grossPurchasePriceMA", Messages.ColumnGrossPurchasePriceMovingAverage, SWT.RIGHT, 60); //$NON-NLS-1$
+        column.setDescription(Messages.ColumnGrossPurchasePriceMovingAverage_Description);
+        column.setMenuLabel(Messages.ColumnGrossPurchasePriceMovingAverage_MenuLabel);
+        labelProvider = new ReportingPeriodLabelProvider(
+                        new ElementValueProvider(LazySecurityPerformanceRecord::getGrossMovingAverageCostPerSharesHeld,
+                                        null),
+                        false);
         column.setLabelProvider(labelProvider);
         column.setSorter(ColumnViewerSorter.create(new ElementComparator(labelProvider)));
         column.setVisible(false);
@@ -561,6 +584,7 @@ public class StatementOfAssetsViewer
 
         column = new Column("pvmvavg", Messages.ColumnPurchaseValueMovingAverage, SWT.RIGHT, 80); //$NON-NLS-1$
         column.setDescription(Messages.ColumnPurchaseValueMovingAverage_Description);
+        column.setMenuLabel(Messages.ColumnPurchaseValueMovingAverage_MenuLabel);
         labelProvider = new ReportingPeriodLabelProvider(
                         new ElementValueProvider(LazySecurityPerformanceRecord::getMovingAverageCost, withSum()),
                         false);
