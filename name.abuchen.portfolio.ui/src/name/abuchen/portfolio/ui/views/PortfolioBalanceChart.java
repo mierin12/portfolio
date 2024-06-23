@@ -206,6 +206,9 @@ public class PortfolioBalanceChart extends TimelineChart // NOSONAR
             if (chartConfig.contains(ChartDetails.FEES_ACCUMULATED))
                 addFees(index, swtAntialias);
 
+            if (chartConfig.contains(ChartDetails.TRANSFERALS))
+                addTransferals(index);
+
         }
         finally
         {
@@ -226,6 +229,7 @@ public class PortfolioBalanceChart extends TimelineChart // NOSONAR
         manager.add(addMenuAction(ChartDetails.ABSOLUTE_DELTA));
         manager.add(addMenuAction(ChartDetails.TAXES_ACCUMULATED));
         manager.add(addMenuAction(ChartDetails.FEES_ACCUMULATED));
+        manager.add(addMenuAction(ChartDetails.TRANSFERALS));
     }
 
     private Action addMenuAction(ChartDetails detail)
@@ -261,6 +265,7 @@ public class PortfolioBalanceChart extends TimelineChart // NOSONAR
         {
             manager.add(new SimpleAction(Messages.MenuExportChartData, a -> {
                 TimelineChartCSVExporter exporter = new TimelineChartCSVExporter(PortfolioBalanceChart.this);
+                exporter.addDiscontinousSeries(Messages.LabelTransferals);
                 exporter.export(getTitle().getText() + ".csv"); //$NON-NLS-1$
             }));
 
@@ -306,12 +311,21 @@ public class PortfolioBalanceChart extends TimelineChart // NOSONAR
         lineSeries.setAntialias(swtAntialias);
     }
 
+    private void addTransferals(PerformanceIndex index)
+    {
+        double[] values = toDouble(index.getTransferals(), Values.Amount.divider());
+        String barID = Messages.LabelTransferals;
+
+        addDateBarSeries(barID, index.getDates(), values, barID);
+    }
+
     private enum ChartDetails
     {
         ABSOLUTE_INVESTED_CAPITAL(Messages.LabelAbsoluteInvestedCapital), //
         ABSOLUTE_DELTA(Messages.LabelAbsoluteDelta), //
         TAXES_ACCUMULATED(Messages.LabelAccumulatedTaxes), //
-        FEES_ACCUMULATED(Messages.LabelFeesAccumulated);
+        FEES_ACCUMULATED(Messages.LabelFeesAccumulated), //
+        TRANSFERALS(Messages.LabelTransferals);
 
         private final String label;
 
