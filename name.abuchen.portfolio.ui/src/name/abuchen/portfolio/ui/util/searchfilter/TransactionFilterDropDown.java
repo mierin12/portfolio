@@ -24,7 +24,7 @@ public class TransactionFilterDropDown extends DropDown implements IMenuListener
     public TransactionFilterDropDown(IPreferenceStore preferenceStore, String prefKey,
                     Consumer<TransactionFilterCriteria> notifyModelUpdated)
     {
-        super(Messages.SecurityFilter, Images.FILTER_OFF, SWT.NONE);
+        super(Messages.TransactionFilter, Images.FILTER_OFF, SWT.NONE);
 
         this.notifyModelUpdated = notifyModelUpdated;
 

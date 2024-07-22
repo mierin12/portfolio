@@ -59,7 +59,7 @@ public class AllTransactionsView extends AbstractFinanceView
 
         public FilterDropDown(IPreferenceStore preferenceStore)
         {
-            super(Messages.SecurityFilter, Images.FILTER_OFF, SWT.NONE);
+            super(Messages.TransactionFilter, Images.FILTER_OFF, SWT.NONE);
 
             setMenuListener(this);
 
