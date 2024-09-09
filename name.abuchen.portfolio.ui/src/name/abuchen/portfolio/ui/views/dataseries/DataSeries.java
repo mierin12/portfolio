@@ -41,6 +41,73 @@ public final class DataSeries implements Adaptable
     }
 
     /**
+     * Data series available for the Type_Parent type.
+     */
+    public enum ClientDataSeriesType
+    {
+        TRANSFERALS(ClientDataSeries.TRANSFERALS, Messages.LabelTransferals, false), //
+        TRANSFERALS_ACCUMULATED(ClientDataSeries.TRANSFERALS_ACCUMULATED, Messages.LabelAccumulatedTransferals, true,
+                        true), //
+        INVESTED_CAPITAL(ClientDataSeries.INVESTED_CAPITAL, Messages.LabelInvestedCapital, true, true), //
+        ABSOLUTE_INVESTED_CAPITAL(ClientDataSeries.ABSOLUTE_INVESTED_CAPITAL, Messages.LabelAbsoluteInvestedCapital,
+                        true, true), //
+        ABSOLUTE_DELTA(ClientDataSeries.ABSOLUTE_DELTA, Messages.LabelDelta, true), //
+        ABSOLUTE_DELTA_ALL_RECORDS(ClientDataSeries.ABSOLUTE_DELTA_ALL_RECORDS, Messages.LabelAbsoluteDelta, true), //
+        DIVIDENDS(ClientDataSeries.DIVIDENDS, Messages.LabelDividends, false), //
+        DIVIDENDS_ACCUMULATED(ClientDataSeries.DIVIDENDS_ACCUMULATED, Messages.LabelAccumulatedDividends, true), //
+        INTEREST(ClientDataSeries.INTEREST, Messages.LabelInterest, false), //
+        INTEREST_ACCUMULATED(ClientDataSeries.INTEREST_ACCUMULATED, Messages.LabelAccumulatedInterest, true), //
+        INTEREST_CHARGE(ClientDataSeries.INTEREST_CHARGE, Messages.LabelInterestCharge, false), //
+        INTEREST_CHARGE_ACCUMULATED(ClientDataSeries.INTEREST_CHARGE_ACCUMULATED,
+                        Messages.LabelAccumulatedInterestCharge, true), //
+        EARNINGS(ClientDataSeries.EARNINGS, Messages.LabelEarnings, false), //
+        EARNINGS_ACCUMULATED(ClientDataSeries.EARNINGS_ACCUMULATED, Messages.LabelAccumulatedEarnings, true), //
+        FEES(ClientDataSeries.FEES, Messages.LabelFees, false), //
+        FEES_ACCUMULATED(ClientDataSeries.FEES_ACCUMULATED, Messages.LabelFeesAccumulated, true), //
+        TAXES(ClientDataSeries.TAXES, Messages.ColumnTaxes, false), //
+        TAXES_ACCUMULATED(ClientDataSeries.TAXES_ACCUMULATED, Messages.LabelAccumulatedTaxes, true); //
+
+        private String label;
+        private boolean isLine;
+        private boolean isArea;
+        private ClientDataSeries clientDataSeries;
+
+        private ClientDataSeriesType(ClientDataSeries clientDataSeries, String label, boolean isLine)
+        {
+            this(clientDataSeries, label, isLine, false);
+        }
+
+        private ClientDataSeriesType(ClientDataSeries clientDataSeries, String label, boolean isLine, boolean isArea)
+        {
+            this.label = label;
+            this.isLine = isLine;
+            this.isArea = isArea;
+            this.clientDataSeries = clientDataSeries;
+        }
+
+        public boolean isLineSerie()
+        {
+            return isLine;
+        }
+
+        public boolean isAreaSerie()
+        {
+            return isArea;
+        }
+
+        public ClientDataSeries getClientDataSeries()
+        {
+            return clientDataSeries;
+        }
+
+        @Override
+        public String toString()
+        {
+            return label;
+        }
+    }
+
+    /**
      * Type of objects for which the PerformanceIndex is calculated.
      */
     public enum Type
@@ -56,6 +123,7 @@ public final class DataSeries implements Adaptable
         PORTFOLIO_PLUS_ACCOUNT("[+]Portfolio", i -> ((Portfolio) i).getUUID()), //$NON-NLS-1$
         PORTFOLIO_PLUS_ACCOUNT_PRETAX("[+]Portfolio-PreTax", i -> ((Portfolio) i).getUUID()), //$NON-NLS-1$
         CLASSIFICATION("Classification", i -> ((Classification) i).getId()), //$NON-NLS-1$
+        TYPE_PARENT("Type-Parent-", i -> ((GroupedDataSeries) i).getId()), //$NON-NLS-1$
         CLIENT_FILTER("ClientFilter", i -> ((ClientFilterMenu.Item) i).getId()), //$NON-NLS-1$ $
         CLIENT_FILTER_PRETAX("ClientFilter-PreTax", i -> ((ClientFilterMenu.Item) i).getId()); //$NON-NLS-1$
 
@@ -124,6 +192,13 @@ public final class DataSeries implements Adaptable
 
     public String getLabel()
     {
+        if (instance instanceof GroupedDataSeries groupedDataSeries)
+            return groupedDataSeries.getClientDataSeriesLabel() + " (" //$NON-NLS-1$
+                            + (groupedDataSeries.getParentObject() instanceof Classification classification
+                                            ? classification.getName()
+                                            : label)
+                            + ")"; //$NON-NLS-1$
+
         return isBenchmark() ? label + " " + Messages.ChartSeriesBenchmarkSuffix : label; //$NON-NLS-1$
     }
 
@@ -214,7 +289,8 @@ public final class DataSeries implements Adaptable
 
     public Image getImage()
     {
-        switch (type)
+        switch (instance instanceof GroupedDataSeries groupedDataSeries ? groupedDataSeries.getParentObjectType()
+                        : type)
         {
             case SECURITY:
             case SECURITY_BENCHMARK:
