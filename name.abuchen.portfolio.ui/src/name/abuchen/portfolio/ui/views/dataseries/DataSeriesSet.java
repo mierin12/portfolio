@@ -147,7 +147,7 @@ public class DataSeriesSet
                                         DataSeries.Type.CLASSIFICATION);
 
                         var dataSeries = new DataSeries(DataSeries.Type.TYPE_PARENT, taxonomy, instance,
-                                        classification.getPathName(false), wheel.next());
+                                        classification.getName(), wheel.next());
                         dataSeries.setLineChart(entry.isLineSerie());
                         dataSeries.setShowArea(entry.isAreaSerie());
                         availableDerivedSeries.add(dataSeries);
