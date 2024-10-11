@@ -105,6 +105,8 @@ public class PerformanceView extends AbstractHistoricView
     private TableViewer earningsByAccount;
     private TableViewer taxes;
     private TableViewer fees;
+    private TableViewer deposits;
+    private TableViewer removals;
 
     @Override
     protected String getDefaultTitle()
@@ -172,6 +174,8 @@ public class PerformanceView extends AbstractHistoricView
         earningsByAccount.setInput(new GroupEarningsByAccount(snapshot).getItems());
         taxes.setInput(snapshot.getTaxes());
         fees.setInput(snapshot.getFees());
+        deposits.setInput(snapshot.getDeposits());
+        removals.setInput(snapshot.getRemovals());
     }
 
     @Override
@@ -201,6 +205,10 @@ public class PerformanceView extends AbstractHistoricView
         createEarningsByAccountsItem(folder, Messages.PerformanceTabEarningsByAccount);
         taxes = createTransactionViewer(folder, Messages.PerformanceTabTaxes);
         fees = createTransactionViewer(folder, Messages.PerformanceTabFees);
+        deposits = createTransactionViewer(folder,
+                        Messages.LabelPNTransfers + " : " + Messages.TransactionFilterDeposit); //$NON-NLS-1$
+        removals = createTransactionViewer(folder,
+                        Messages.LabelPNTransfers + " : " + Messages.TransactionFilterRemoval); //$NON-NLS-1$
 
         folder.setSelection(0);
 
