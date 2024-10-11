@@ -173,6 +173,8 @@ public class ClientPerformanceSnapshot
     private final List<TransactionPair<?>> earnings = new ArrayList<>();
     private final List<TransactionPair<?>> fees = new ArrayList<>();
     private final List<TransactionPair<?>> taxes = new ArrayList<>();
+    private final List<TransactionPair<?>> deposits = new ArrayList<>();
+    private final List<TransactionPair<?>> removals = new ArrayList<>();
     private double irr;
 
     public ClientPerformanceSnapshot(Client client, CurrencyConverter converter, LocalDate startDate, LocalDate endDate)
@@ -246,6 +248,16 @@ public class ClientPerformanceSnapshot
     public List<TransactionPair<?>> getTaxes()
     {
         return taxes;
+    }
+
+    public List<TransactionPair<?>> getDeposits()
+    {
+        return deposits;
+    }
+
+    public List<TransactionPair<?>> getRemovals()
+    {
+        return removals;
     }
 
     public double getPerformanceIRR()
@@ -424,9 +436,11 @@ public class ClientPerformanceSnapshot
                         break;
                     case DEPOSIT:
                         mDeposits.add(value);
+                        deposits.add(new TransactionPair<AccountTransaction>(account, t));
                         break;
                     case REMOVAL:
                         mRemovals.add(value);
+                        removals.add(new TransactionPair<AccountTransaction>(account, t));
                         break;
                     case FEES:
                         mFees.add(value);
@@ -489,9 +503,11 @@ public class ClientPerformanceSnapshot
                 {
                     case DELIVERY_INBOUND:
                         mDeposits.add(t.getMonetaryAmount().with(converter.at(t.getDateTime())));
+                        deposits.add(new TransactionPair<PortfolioTransaction>(portfolio, t));
                         break;
                     case DELIVERY_OUTBOUND:
                         mRemovals.add(t.getMonetaryAmount().with(converter.at(t.getDateTime())));
+                        removals.add(new TransactionPair<PortfolioTransaction>(portfolio, t));
                         break;
                     case BUY:
                     case SELL:
