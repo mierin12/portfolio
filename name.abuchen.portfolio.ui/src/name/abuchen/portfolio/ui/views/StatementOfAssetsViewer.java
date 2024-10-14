@@ -641,7 +641,7 @@ public class StatementOfAssetsViewer
         column = new Column("ttwror_pa", Messages.ColumnTTWRORpa, SWT.RIGHT, 80); //$NON-NLS-1$
         labelProvider = new ReportingPeriodLabelProvider(
                         LazySecurityPerformanceRecord::getTrueTimeWeightedRateOfReturnAnnualized, true,
-                        PerformanceIndex::getFinalAccumulatedAnnualizedPercentage);
+                        PerformanceIndex::getFinalAccumulatedAnnualizedPercentage, true);
         column.setOptions(new ReportingPeriodColumnOptions(Messages.ColumnTTWRORpa_Option, options));
         column.setGroupLabel(Messages.GroupLabelPerformance);
         column.setDescription(Messages.LabelTTWROR_Annualized);
@@ -652,7 +652,7 @@ public class StatementOfAssetsViewer
 
         column = new Column("irr", Messages.ColumnIRR, SWT.RIGHT, 80); //$NON-NLS-1$
         labelProvider = new ReportingPeriodLabelProvider(LazySecurityPerformanceRecord::getIrr, true,
-                        PerformanceIndex::getPerformanceIRR);
+                        PerformanceIndex::getPerformanceIRR, true);
         column.setOptions(new ReportingPeriodColumnOptions(Messages.ColumnIRRPerformanceOption, options));
         column.setMenuLabel(Messages.ColumnIRR_MenuLabel);
         column.setGroupLabel(Messages.GroupLabelPerformance);
@@ -1379,35 +1379,52 @@ public class StatementOfAssetsViewer
     private final class ReportingPeriodLabelProvider extends OptionLabelProvider<ReportingPeriod>
                     implements Comparator<Object>
     {
+        private boolean annualized;
         private boolean showColorAndArrows;
         private ElementValueProvider valueProvider;
         private Function<Element, String> currencyProvider;
 
         public ReportingPeriodLabelProvider(Function<LazySecurityPerformanceRecord, LazyValue<?>> valueProvider)
         {
-            this(new ElementValueProvider(valueProvider, null), null, true);
+            this(new ElementValueProvider(valueProvider, null), null, true, false);
         }
 
         public ReportingPeriodLabelProvider(Function<LazySecurityPerformanceRecord, LazyValue<?>> valueProvider,
                         Function<Stream<Object>, Object> collector, boolean showUpAndDownArrows)
         {
-            this(new ElementValueProvider(valueProvider, collector), null, showUpAndDownArrows);
+            this(new ElementValueProvider(valueProvider, collector), null, showUpAndDownArrows, false);
         }
 
         public ReportingPeriodLabelProvider(Function<LazySecurityPerformanceRecord, LazyValue<?>> valueProvider,
                         boolean showUpAndDownArrows, Function<PerformanceIndex, ?> valueProviderTotal)
         {
-            this(new ElementValueProvider(valueProvider, null, valueProviderTotal), null, showUpAndDownArrows);
+            this(new ElementValueProvider(valueProvider, null, valueProviderTotal), null, showUpAndDownArrows, false);
+        }
+
+        public ReportingPeriodLabelProvider(Function<LazySecurityPerformanceRecord, LazyValue<?>> valueProvider,
+                        boolean showUpAndDownArrows, Function<PerformanceIndex, ?> valueProviderTotal,
+                        boolean annualized)
+        {
+            this(new ElementValueProvider(valueProvider, null, valueProviderTotal), null, showUpAndDownArrows,
+                            annualized);
         }
 
         public ReportingPeriodLabelProvider(ElementValueProvider valueProvider, boolean showUpAndDownArrows)
         {
-            this(valueProvider, null, showUpAndDownArrows);
+            this(valueProvider, null, showUpAndDownArrows, false);
         }
 
         public ReportingPeriodLabelProvider(ElementValueProvider valueProvider,
                         Function<Element, String> currencyProvider, boolean showUpAndDownArrows)
         {
+            this(valueProvider, currencyProvider, showUpAndDownArrows, false);
+        }
+
+        public ReportingPeriodLabelProvider(ElementValueProvider valueProvider,
+                        Function<Element, String> currencyProvider, boolean showUpAndDownArrows, boolean annualized)
+        {
+
+            this.annualized = annualized;
             this.valueProvider = valueProvider;
             this.currencyProvider = currencyProvider;
             this.showColorAndArrows = showUpAndDownArrows;
@@ -1453,6 +1470,8 @@ public class StatementOfAssetsViewer
                 return Values.Money.format(money, client.getBaseCurrency());
             else if (value instanceof Quote quote)
                 return Values.CalculatedQuote.format(quote, client.getBaseCurrency());
+            else if (value instanceof Double d && annualized)
+                return Values.AnnualizedPercent2.format(d);
             else if (value instanceof Double d)
                 return Values.Percent2.format(d);
 

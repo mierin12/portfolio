@@ -1141,7 +1141,7 @@ public class SecuritiesPerformanceView extends AbstractFinanceView implements Re
         column = new Column("ttwror_pa", Messages.ColumnTTWRORpa, SWT.RIGHT, 80); //$NON-NLS-1$
         column.setGroupLabel(Messages.GroupLabelPerformance);
         column.setMenuLabel(Messages.LabelTTWROR_Annualized);
-        column.setLabelProvider(new RowElementLabelProvider(new NumberColorLabelProvider<>(Values.Percent2,
+        column.setLabelProvider(new RowElementLabelProvider(new NumberColorLabelProvider<>(Values.AnnualizedPercent2,
                         r -> ((LazySecurityPerformanceRecord) r).getTrueTimeWeightedRateOfReturnAnnualized().get())));
         column.setVisible(false);
         column.setSorter(ColumnViewerSorter.create(
@@ -1152,7 +1152,7 @@ public class SecuritiesPerformanceView extends AbstractFinanceView implements Re
         column = new Column("izf", Messages.ColumnIRR, SWT.RIGHT, 80); //$NON-NLS-1$
         column.setGroupLabel(Messages.GroupLabelPerformance);
         column.setMenuLabel(Messages.ColumnIRR_MenuLabel);
-        column.setLabelProvider(new RowElementLabelProvider(new NumberColorLabelProvider<>(Values.Percent2,
+        column.setLabelProvider(new RowElementLabelProvider(new NumberColorLabelProvider<>(Values.AnnualizedPercent2,
                         r -> ((LazySecurityPerformanceRecord) r).getIrr().get())));
         column.setSorter(ColumnViewerSorter.create(e -> ((LazySecurityPerformanceRecord) e).getIrr().get()));
         recordColumns.addColumn(column);

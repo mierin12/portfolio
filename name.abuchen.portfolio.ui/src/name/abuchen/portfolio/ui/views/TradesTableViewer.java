@@ -297,7 +297,7 @@ public class TradesTableViewer
 
         column = new Column("irr", Messages.ColumnIRR, SWT.RIGHT, 80); //$NON-NLS-1$
         column.setMenuLabel(Messages.ColumnIRR_MenuLabel);
-        column.setLabelProvider(new NumberColorLabelProvider<>(Values.Percent2, t -> ((Trade) t).getIRR()));
+        column.setLabelProvider(new NumberColorLabelProvider<>(Values.AnnualizedPercent2, t -> ((Trade) t).getIRR()));
         column.setSorter(ColumnViewerSorter.create(e -> ((Trade) e).getIRR()));
         support.addColumn(column);
 
