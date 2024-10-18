@@ -762,6 +762,7 @@ public class SecuritiesPerformanceView extends AbstractFinanceView implements Re
         CopyPasteSupport.enableFor(records);
 
         createCommonColumns();
+        addPurchaseCostColumns();
         createDividendColumns();
         addPerformanceColumns();
         addCapitalGainsColumns();
@@ -858,86 +859,6 @@ public class SecuritiesPerformanceView extends AbstractFinanceView implements Re
         column.setLabelProvider(new RowElementLabelProvider(column, aggregate -> Messages.ColumnSum));
         column.getEditingSupport().addListener(new TouchClientListener(getClient()));
         column.setSortDirction(SWT.UP);
-        recordColumns.addColumn(column);
-
-        // cost value - fifo
-        column = new Column("pv", Messages.ColumnPurchaseValue, SWT.RIGHT, 75); //$NON-NLS-1$
-        column.setDescription(Messages.ColumnPurchaseValue_Description + TextUtil.PARAGRAPH_BREAK
-                        + Messages.DescriptionDataRelativeToReportingPeriod);
-        column.setImage(Images.INTERVAL);
-        column.setLabelProvider(new RowElementLabelProvider(
-                        r -> Values.Money.format(r.getFifoCost().get(), getClient().getBaseCurrency()),
-                        aggregate -> Values.Money.format(
-                                        aggregate.sum(getClient().getBaseCurrency(), r -> r.getFifoCost().get()),
-                                        getClient().getBaseCurrency())));
-        column.setToolTipProvider(
-                        element -> ((RowElement) element).explain(LazySecurityPerformanceRecord.Trails.FIFO_COST));
-        column.setSorter(ColumnViewerSorter.create(e -> ((LazySecurityPerformanceRecord) e).getFifoCost().get()));
-        recordColumns.addColumn(column);
-
-        // cost value - moving average
-        column = new Column("pvmvavg", Messages.ColumnPurchaseValueMovingAverage, SWT.RIGHT, 75); //$NON-NLS-1$
-        column.setMenuLabel(Messages.ColumnPurchaseValueMovingAverage_MenuLabel);
-        column.setDescription(Messages.ColumnPurchaseValueMovingAverage_Description + TextUtil.PARAGRAPH_BREAK
-                        + Messages.DescriptionDataRelativeToReportingPeriod);
-        column.setImage(Images.INTERVAL);
-        column.setLabelProvider(new RowElementLabelProvider(
-                        r -> Values.Money.format(r.getMovingAverageCost().get(), getClient().getBaseCurrency()),
-                        aggregate -> Values.Money.format(
-                                        aggregate.sum(getClient().getBaseCurrency(),
-                                                        r -> r.getMovingAverageCost().get()),
-                                        getClient().getBaseCurrency())));
-        column.setSorter(ColumnViewerSorter
-                        .create(e -> ((LazySecurityPerformanceRecord) e).getMovingAverageCost().get()));
-        column.setVisible(false);
-        recordColumns.addColumn(column);
-
-        // cost value per share - fifo
-        column = new Column("pp", Messages.ColumnPurchasePrice, SWT.RIGHT, 75); //$NON-NLS-1$
-        column.setDescription(Messages.ColumnPurchasePrice_Description + TextUtil.PARAGRAPH_BREAK
-                        + Messages.DescriptionDataRelativeToReportingPeriod);
-        column.setImage(Images.INTERVAL);
-        column.setLabelProvider(new RowElementLabelProvider(r -> Values.CalculatedQuote
-                        .format(r.getFifoCostPerSharesHeld().get(), getClient().getBaseCurrency())));
-        column.setSorter(ColumnViewerSorter
-                        .create(e -> ((LazySecurityPerformanceRecord) e).getFifoCostPerSharesHeld().get()));
-        recordColumns.addColumn(column);
-
-        // cost value per share - moving average
-        column = new Column("ppmvavg", Messages.ColumnPurchasePriceMovingAverage, SWT.RIGHT, 75); //$NON-NLS-1$
-        column.setMenuLabel(Messages.ColumnPurchasePriceMovingAverage_MenuLabel);
-        column.setDescription(Messages.ColumnPurchasePriceMovingAverage_Description + TextUtil.PARAGRAPH_BREAK
-                        + Messages.DescriptionDataRelativeToReportingPeriod);
-        column.setImage(Images.INTERVAL);
-        column.setLabelProvider(new RowElementLabelProvider(r -> Values.CalculatedQuote
-                        .format(r.getMovingAverageCostPerSharesHeld().get(), getClient().getBaseCurrency())));
-        column.setSorter(ColumnViewerSorter
-                        .create(e -> ((LazySecurityPerformanceRecord) e).getMovingAverageCostPerSharesHeld().get()));
-        column.setVisible(false);
-        recordColumns.addColumn(column);
-
-        // cost value per share including fees and taxes- fifo
-        column = new Column("grosspp", Messages.ColumnGrossPurchasePriceFIFO, SWT.RIGHT, 75); //$NON-NLS-1$
-        column.setDescription(Messages.ColumnGrossPurchasePriceFIFO_Description + TextUtil.PARAGRAPH_BREAK
-                        + Messages.DescriptionDataRelativeToReportingPeriod);
-        column.setImage(Images.INTERVAL);
-        column.setLabelProvider(new RowElementLabelProvider(r -> Values.CalculatedQuote
-                        .format(r.getGrossFifoCostPerSharesHeld().get(), getClient().getBaseCurrency())));
-        column.setSorter(ColumnViewerSorter
-                        .create(e -> ((LazySecurityPerformanceRecord) e).getGrossFifoCostPerSharesHeld().get()));
-        recordColumns.addColumn(column);
-
-        // cost value per share including fees and taxes - moving average
-        column = new Column("grossppmvavg", Messages.ColumnGrossPurchasePriceMovingAverage, SWT.RIGHT, 75); //$NON-NLS-1$
-        column.setMenuLabel(Messages.ColumnGrossPurchasePriceMovingAverage_MenuLabel);
-        column.setDescription(Messages.ColumnGrossPurchasePriceMovingAverage_Description + TextUtil.PARAGRAPH_BREAK
-                        + Messages.DescriptionDataRelativeToReportingPeriod);
-        column.setImage(Images.INTERVAL);
-        column.setLabelProvider(new RowElementLabelProvider(r -> Values.CalculatedQuote
-                        .format(r.getGrossMovingAverageCostPerSharesHeld().get(), getClient().getBaseCurrency())));
-        column.setSorter(ColumnViewerSorter.create(
-                        e -> ((LazySecurityPerformanceRecord) e).getGrossMovingAverageCostPerSharesHeld().get()));
-        column.setVisible(false);
         recordColumns.addColumn(column);
 
         // latest / current quote
@@ -1147,6 +1068,95 @@ public class SecuritiesPerformanceView extends AbstractFinanceView implements Re
         // note
         column = new NoteColumn();
         column.getEditingSupport().addListener(new TouchClientListener(getClient()));
+        column.setVisible(false);
+        recordColumns.addColumn(column);
+    }
+
+    private void addPurchaseCostColumns()
+    {
+        // cost value - fifo
+        Column column = new Column("pv", Messages.ColumnPurchaseValue, SWT.RIGHT, 75); //$NON-NLS-1$
+        column.setGroupLabel(Messages.ColumnPurchasePrice);
+        column.setDescription(Messages.ColumnPurchaseValue_Description + TextUtil.PARAGRAPH_BREAK
+                        + Messages.DescriptionDataRelativeToReportingPeriod);
+        column.setImage(Images.INTERVAL);
+        column.setLabelProvider(new RowElementLabelProvider(
+                        r -> Values.Money.format(r.getFifoCost().get(), getClient().getBaseCurrency()),
+                        aggregate -> Values.Money.format(
+                                        aggregate.sum(getClient().getBaseCurrency(), r -> r.getFifoCost().get()),
+                                        getClient().getBaseCurrency())));
+        column.setToolTipProvider(
+                        element -> ((RowElement) element).explain(LazySecurityPerformanceRecord.Trails.FIFO_COST));
+        column.setSorter(ColumnViewerSorter.create(e -> ((LazySecurityPerformanceRecord) e).getFifoCost().get()));
+        recordColumns.addColumn(column);
+
+        // cost value per share - fifo
+        column = new Column("pp", Messages.ColumnPurchasePrice, SWT.RIGHT, 75); //$NON-NLS-1$
+        column.setGroupLabel(Messages.ColumnPurchasePrice);
+        column.setDescription(Messages.ColumnPurchasePrice_Description + TextUtil.PARAGRAPH_BREAK
+                        + Messages.DescriptionDataRelativeToReportingPeriod);
+        column.setImage(Images.INTERVAL);
+        column.setLabelProvider(new RowElementLabelProvider(r -> Values.CalculatedQuote
+                        .format(r.getFifoCostPerSharesHeld().get(), getClient().getBaseCurrency())));
+        column.setSorter(ColumnViewerSorter
+                        .create(e -> ((LazySecurityPerformanceRecord) e).getFifoCostPerSharesHeld().get()));
+        recordColumns.addColumn(column);
+
+        // cost value per share including fees and taxes - fifo
+        column = new Column("grosspp", Messages.ColumnGrossPurchasePriceFIFO, SWT.RIGHT, 75); //$NON-NLS-1$
+        column.setGroupLabel(Messages.ColumnPurchasePrice);
+        column.setDescription(Messages.ColumnGrossPurchasePriceFIFO_Description + TextUtil.PARAGRAPH_BREAK
+                        + Messages.DescriptionDataRelativeToReportingPeriod);
+        column.setImage(Images.INTERVAL);
+        column.setLabelProvider(new RowElementLabelProvider(r -> Values.CalculatedQuote
+                        .format(r.getGrossFifoCostPerSharesHeld().get(), getClient().getBaseCurrency())));
+        column.setSorter(ColumnViewerSorter
+                        .create(e -> ((LazySecurityPerformanceRecord) e).getGrossFifoCostPerSharesHeld().get()));
+        recordColumns.addColumn(column);
+
+        // cost value - moving average
+        column = new Column("pvmvavg", Messages.ColumnPurchaseValueMovingAverage, SWT.RIGHT, 75); //$NON-NLS-1$
+        column.setGroupLabel(Messages.ColumnPurchasePrice);
+        column.setMenuLabel(Messages.ColumnPurchaseValueMovingAverage_MenuLabel);
+        column.setDescription(Messages.ColumnPurchaseValueMovingAverage_Description + TextUtil.PARAGRAPH_BREAK
+                        + Messages.DescriptionDataRelativeToReportingPeriod);
+        column.setImage(Images.INTERVAL);
+        column.setLabelProvider(new RowElementLabelProvider(
+                        r -> Values.Money.format(r.getMovingAverageCost().get(), getClient().getBaseCurrency()),
+                        aggregate -> Values.Money.format(
+                                        aggregate.sum(getClient().getBaseCurrency(),
+                                                        r -> r.getMovingAverageCost().get()),
+                                        getClient().getBaseCurrency())));
+        column.setSorter(ColumnViewerSorter
+                        .create(e -> ((LazySecurityPerformanceRecord) e).getMovingAverageCost().get()));
+        column.setVisible(false);
+        recordColumns.addColumn(column);
+
+        // cost value per share - moving average
+        column = new Column("ppmvavg", Messages.ColumnPurchasePriceMovingAverage, SWT.RIGHT, 75); //$NON-NLS-1$
+        column.setGroupLabel(Messages.ColumnPurchasePrice);
+        column.setMenuLabel(Messages.ColumnPurchasePriceMovingAverage_MenuLabel);
+        column.setDescription(Messages.ColumnPurchasePriceMovingAverage_Description + TextUtil.PARAGRAPH_BREAK
+                        + Messages.DescriptionDataRelativeToReportingPeriod);
+        column.setImage(Images.INTERVAL);
+        column.setLabelProvider(new RowElementLabelProvider(r -> Values.CalculatedQuote
+                        .format(r.getMovingAverageCostPerSharesHeld().get(), getClient().getBaseCurrency())));
+        column.setSorter(ColumnViewerSorter
+                        .create(e -> ((LazySecurityPerformanceRecord) e).getMovingAverageCostPerSharesHeld().get()));
+        column.setVisible(false);
+        recordColumns.addColumn(column);
+
+        // cost value per share including fees and taxes - moving average
+        column = new Column("grossppmvavg", Messages.ColumnGrossPurchasePriceMovingAverage, SWT.RIGHT, 75); //$NON-NLS-1$
+        column.setGroupLabel(Messages.ColumnPurchasePrice);
+        column.setMenuLabel(Messages.ColumnGrossPurchasePriceMovingAverage_MenuLabel);
+        column.setDescription(Messages.ColumnGrossPurchasePriceMovingAverage_Description + TextUtil.PARAGRAPH_BREAK
+                        + Messages.DescriptionDataRelativeToReportingPeriod);
+        column.setImage(Images.INTERVAL);
+        column.setLabelProvider(new RowElementLabelProvider(r -> Values.CalculatedQuote
+                        .format(r.getGrossMovingAverageCostPerSharesHeld().get(), getClient().getBaseCurrency())));
+        column.setSorter(ColumnViewerSorter.create(
+                        e -> ((LazySecurityPerformanceRecord) e).getGrossMovingAverageCostPerSharesHeld().get()));
         column.setVisible(false);
         recordColumns.addColumn(column);
     }
