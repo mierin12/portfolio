@@ -14,6 +14,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import jakarta.inject.Inject;
+
 import org.eclipse.core.databinding.beans.typed.BeanProperties;
 import org.eclipse.core.databinding.observable.value.IObservableValue;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -44,6 +46,8 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
 
+import name.abuchen.portfolio.model.Client;
+import name.abuchen.portfolio.model.CustomJson;
 import name.abuchen.portfolio.model.Exchange;
 import name.abuchen.portfolio.model.Security;
 import name.abuchen.portfolio.online.QuoteFeed;
@@ -152,6 +156,9 @@ public abstract class AbstractQuoteProviderPage extends AbstractPage
         }
     }
 
+    @Inject
+    private Client client;
+
     private static final String YAHOO = "YAHOO"; //$NON-NLS-1$
     private static final String HTML = "HTML"; //$NON-NLS-1$
 
@@ -182,6 +189,9 @@ public abstract class AbstractQuoteProviderPage extends AbstractPage
     private Text textJsonFactor;
     private Label labelJsonPathVolume;
     private Text textJsonPathVolume;
+    private Label labelJsonCustom;
+
+    private ComboViewer comboCustomJSON;
 
     private Label labelCoinGeckoCoinId;
     private Text textCoinGeckoCoinId;
@@ -733,6 +743,24 @@ public abstract class AbstractQuoteProviderPage extends AbstractPage
             deco.setImage(Images.INFO.image());
             deco.setMarginWidth(2);
             deco.show();
+
+            labelJsonCustom = new Label(grpQuoteFeed, SWT.NONE);
+            labelJsonCustom.setText("template"); //$NON-NLS-1$
+
+            comboCustomJSON = new ComboViewer(grpQuoteFeed, SWT.BORDER);
+            comboCustomJSON.setContentProvider(ArrayContentProvider.getInstance());
+            comboCustomJSON.setLabelProvider(new LabelProvider()
+            {
+                @Override
+                public String getText(Object element)
+                {
+                    // Exchange exchange = (Exchange) element;
+                    return ((CustomJson) element).getLabel();
+                }
+            });
+            comboCustomJSON.setInput(client.getSettings().getcustomJsons());
+            GridDataFactory.fillDefaults().span(2, 1).hint(300, SWT.DEFAULT).applyTo(comboCustomJSON.getControl());
+            // comboExchange.addSelectionChangedListener(this::onExchangeChanged);
         }
 
         if (needsCoinGeckoCoinId)

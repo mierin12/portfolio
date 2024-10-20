@@ -21,6 +21,7 @@ public class ClientSettings
     private List<Bookmark> bookmarks;
     private List<AttributeType> attributeTypes;
     private Map<String, ConfigurationSet> configurationSets;
+    private List<CustomJson> CustomJSONs;
 
     /* package */ ClientSettings()
     {
@@ -33,6 +34,12 @@ public class ClientSettings
         {
             this.bookmarks = new ArrayList<>();
             this.bookmarks.addAll(getDefaultBookmarks());
+        }
+
+        if (CustomJSONs == null)
+        {
+            this.CustomJSONs = new ArrayList<>();
+            // this.CustomJSON.addAll(getDefaultBookmarks());
         }
 
         if (attributeTypes == null)
@@ -182,6 +189,42 @@ public class ClientSettings
     public void clearBookmarks()
     {
         bookmarks.clear();
+    }
+
+    public List<CustomJson> getcustomJsons()
+    {
+        return CustomJSONs;
+    }
+
+    public boolean removeCustomJSON(CustomJson CustomJSON)
+    {
+        return CustomJSONs.remove(CustomJSON);
+    }
+
+    public void insertCustomJSON(CustomJson before, CustomJson CustomJSON)
+    {
+        if (before == null)
+            CustomJSONs.add(CustomJSON);
+        else
+            CustomJSONs.add(CustomJSONs.indexOf(before), CustomJSON);
+    }
+
+    public void insertCustomJSON(int index, CustomJson CustomJSON)
+    {
+        CustomJSONs.add(index, CustomJSON);
+    }
+
+    public void insertCustomJSONAfter(CustomJson after, CustomJson CustomJSON)
+    {
+        if (after == null)
+            CustomJSONs.add(CustomJSON);
+        else
+            CustomJSONs.add(CustomJSONs.indexOf(after) + 1, CustomJSON);
+    }
+
+    public void clearCustomJSONs()
+    {
+        CustomJSONs.clear();
     }
 
     public Stream<AttributeType> getAttributeTypes()
