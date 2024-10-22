@@ -196,8 +196,7 @@ public class TimelineChartToolTip extends AbstractChartToolTip
         GridLayoutFactory.swtDefaults().numColumns(2).applyTo(data);
 
         Label left = new Label(data, SWT.NONE);
-        left.setText(categoryEnabled ? getChart().getAxisSet().getXAxis(0).getTitle().getText()
-                        : Messages.ColumnDate);
+        left.setText(categoryEnabled ? getChart().getAxisSet().getXAxis(0).getTitle().getText() : Messages.ColumnDate);
 
         Label right = new Label(data, SWT.NONE);
         right.setText(formatXAxisData(getFocusedObject()));

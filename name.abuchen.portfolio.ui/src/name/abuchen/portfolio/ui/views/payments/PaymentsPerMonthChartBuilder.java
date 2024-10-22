@@ -41,8 +41,7 @@ public class PaymentsPerMonthChartBuilder implements PaymentsChartBuilder
         @Override
         protected void createComposite(Composite parent)
         {
-            PaymentsViewModel model = (PaymentsViewModel) getChart()
-                            .getData(PaymentsViewModel.class.getSimpleName());
+            PaymentsViewModel model = (PaymentsViewModel) getChart().getData(PaymentsViewModel.class.getSimpleName());
 
             int month = (Integer) getFocusedObject();
 

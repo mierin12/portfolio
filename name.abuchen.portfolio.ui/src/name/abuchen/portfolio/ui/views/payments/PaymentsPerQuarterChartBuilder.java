@@ -38,8 +38,7 @@ public class PaymentsPerQuarterChartBuilder implements PaymentsChartBuilder
         @Override
         protected void createComposite(Composite parent)
         {
-            PaymentsViewModel model = (PaymentsViewModel) getChart()
-                            .getData(PaymentsViewModel.class.getSimpleName());
+            PaymentsViewModel model = (PaymentsViewModel) getChart().getData(PaymentsViewModel.class.getSimpleName());
 
             int quarter = (Integer) getFocusedObject();
 

@@ -39,8 +39,7 @@ public class PaymentsPerYearChartBuilder implements PaymentsChartBuilder
         @Override
         protected void createComposite(Composite parent)
         {
-            PaymentsViewModel model = (PaymentsViewModel) getChart()
-                            .getData(PaymentsViewModel.class.getSimpleName());
+            PaymentsViewModel model = (PaymentsViewModel) getChart().getData(PaymentsViewModel.class.getSimpleName());
 
             int year = (Integer) getFocusedObject();
 
@@ -163,7 +162,6 @@ public class PaymentsPerYearChartBuilder implements PaymentsChartBuilder
             seriesX[i] = series[i];
 
             barSeries.setYSeries(seriesX);
-
             barSeries.setBarColor(PaymentsColors.getColor(year));
             barSeries.setBarPadding(25);
             barSeries.setBarOverlay(true);
