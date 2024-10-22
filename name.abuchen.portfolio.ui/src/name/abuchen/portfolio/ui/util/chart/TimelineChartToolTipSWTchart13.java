@@ -38,7 +38,7 @@ import name.abuchen.portfolio.ui.Messages;
 import name.abuchen.portfolio.ui.util.swt.ColoredLabel;
 import name.abuchen.portfolio.util.Pair;
 
-public class TimelineChartToolTipYearly extends AbstractChartToolTip
+public class TimelineChartToolTipSWTchart13 extends AbstractChartToolTip
 {
     private LocalResourceManager resourceManager;
 
@@ -60,7 +60,7 @@ public class TimelineChartToolTipYearly extends AbstractChartToolTip
 
     private Set<String> excludeFromTooltip = new HashSet<>();
 
-    public TimelineChartToolTipYearly(Chart chart)
+    public TimelineChartToolTipSWTchart13(Chart chart)
     {
         super(chart);
 

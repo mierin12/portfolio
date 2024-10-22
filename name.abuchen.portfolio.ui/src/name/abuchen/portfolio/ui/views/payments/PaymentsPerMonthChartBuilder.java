@@ -19,14 +19,14 @@ import name.abuchen.portfolio.ui.Messages;
 import name.abuchen.portfolio.ui.util.TabularDataSource;
 import name.abuchen.portfolio.ui.util.TabularDataSource.Builder;
 import name.abuchen.portfolio.ui.util.TabularDataSource.Column;
-import name.abuchen.portfolio.ui.util.chart.TimelineChartToolTipYearly;
+import name.abuchen.portfolio.ui.util.chart.TimelineChartToolTipSWTchart13;
 import name.abuchen.portfolio.ui.util.format.ThousandsNumberFormat;
 import name.abuchen.portfolio.ui.views.payments.PaymentsViewModel.Line;
 import name.abuchen.portfolio.util.TextUtil;
 
 public class PaymentsPerMonthChartBuilder implements PaymentsChartBuilder
 {
-    private static class DividendPerMonthChartToolTip extends TimelineChartToolTipYearly
+    private static class DividendPerMonthChartToolTip extends TimelineChartToolTipSWTchart13
     {
         private Consumer<TabularDataSource> selectionListener;
 

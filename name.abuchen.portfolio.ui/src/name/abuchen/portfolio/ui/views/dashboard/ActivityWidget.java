@@ -41,7 +41,7 @@ import name.abuchen.portfolio.ui.UIConstants;
 import name.abuchen.portfolio.ui.util.CacheKey;
 import name.abuchen.portfolio.ui.util.Colors;
 import name.abuchen.portfolio.ui.util.chart.PlainChart;
-import name.abuchen.portfolio.ui.util.chart.TimelineChartToolTipYearly;
+import name.abuchen.portfolio.ui.util.chart.TimelineChartToolTipSWTchart13;
 import name.abuchen.portfolio.ui.util.format.AmountNumberFormat;
 import name.abuchen.portfolio.ui.util.format.ThousandsNumberFormat;
 import name.abuchen.portfolio.util.Interval;
@@ -195,7 +195,7 @@ public class ActivityWidget extends WidgetDelegate<List<TransactionPair<?>>>
 
     private Label title;
     private Chart chart;
-    private TimelineChartToolTipYearly toolTip;
+    private TimelineChartToolTipSWTchart13 toolTip;
 
     private CurrencyConverter converter;
 
@@ -237,7 +237,7 @@ public class ActivityWidget extends WidgetDelegate<List<TransactionPair<?>>>
 
         chart.getLegend().setVisible(false);
 
-        toolTip = new TimelineChartToolTipYearly(chart);
+        toolTip = new TimelineChartToolTipSWTchart13(chart);
         toolTip.enableCategory(true);
         toolTip.reverseLabels(true);
         toolTip.setDefaultValueFormat(new DecimalFormat("#")); //$NON-NLS-1$
