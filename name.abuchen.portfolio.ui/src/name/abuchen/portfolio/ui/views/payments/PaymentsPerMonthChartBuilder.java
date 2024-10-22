@@ -41,12 +41,12 @@ public class PaymentsPerMonthChartBuilder implements PaymentsChartBuilder
         @Override
         protected void createComposite(Composite parent)
         {
-            PaymentsViewModel model = (PaymentsViewModel) getSWTChart()
+            PaymentsViewModel model = (PaymentsViewModel) getChart()
                             .getData(PaymentsViewModel.class.getSimpleName());
 
             int month = (Integer) getFocusedObject();
 
-            IAxis xAxis = getSWTChart().getAxisSet().getXAxes()[0];
+            IAxis xAxis = getChart().getAxisSet().getXAxes()[0];
             TabularDataSource source = new TabularDataSource(
                             Messages.LabelPaymentsPerMonth + " - " + xAxis.getCategorySeries()[month], //$NON-NLS-1$
                             builder -> buildTabularData(model, month, builder));

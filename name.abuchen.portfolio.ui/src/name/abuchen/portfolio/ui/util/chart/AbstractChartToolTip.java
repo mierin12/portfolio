@@ -49,7 +49,7 @@ public abstract class AbstractChartToolTip implements Listener
 
     protected abstract void createComposite(Composite parent);
 
-    protected Chart getSWTChart()
+    protected Chart getChart()
     {
         return chart;
     }

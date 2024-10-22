@@ -26,7 +26,7 @@ public class ScatterChartToolTip extends AbstractChartToolTip
     protected Object getFocusObjectAt(Event event)
     {
         // find closest scatter series
-        ISeries<?>[] series = getSWTChart().getSeriesSet().getSeries();
+        ISeries<?>[] series = getChart().getSeriesSet().getSeries();
 
         ISeries closest = null;
         double minDist = Double.MAX_VALUE;
@@ -54,8 +54,8 @@ public class ScatterChartToolTip extends AbstractChartToolTip
         container.setBackgroundMode(SWT.INHERIT_FORCE);
         GridLayoutFactory.swtDefaults().numColumns(3).applyTo(container);
 
-        IAxis xAxis = getSWTChart().getAxisSet().getXAxis(0);
-        IAxis yAxis = getSWTChart().getAxisSet().getYAxis(0);
+        IAxis xAxis = getChart().getAxisSet().getXAxis(0);
+        IAxis yAxis = getChart().getAxisSet().getYAxis(0);
         ILineSeries closest = (ILineSeries) getFocusedObject();
 
         // header

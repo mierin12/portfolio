@@ -128,7 +128,7 @@ public class TimelineChartToolTip extends AbstractChartToolTip
 
     private Integer getFocusCategoryAt(Event event)
     {
-        IAxis xAxis = getSWTChart().getAxisSet().getXAxes()[0];
+        IAxis xAxis = getChart().getAxisSet().getXAxes()[0];
         int coordinate = (int) xAxis.getDataCoordinate(event.x);
 
         String[] categories = xAxis.getCategorySeries();
@@ -143,7 +143,7 @@ public class TimelineChartToolTip extends AbstractChartToolTip
 
     private Date getFocusDateAt(Event event)
     {
-        IAxis xAxis = getSWTChart().getAxisSet().getXAxes()[0];
+        IAxis xAxis = getChart().getAxisSet().getXAxes()[0];
 
         long time = (long) xAxis.getDataCoordinate(event.x);
 
@@ -157,7 +157,7 @@ public class TimelineChartToolTip extends AbstractChartToolTip
         if (showToolTipOnlyForDatesInThisDataSeries == null)
             return cal.getTime();
 
-        ISeries timeSeries = getSWTChart().getSeriesSet().getSeries(showToolTipOnlyForDatesInThisDataSeries);
+        ISeries timeSeries = getChart().getSeriesSet().getSeries(showToolTipOnlyForDatesInThisDataSeries);
         if (timeSeries == null)
             return cal.getTime();
 
@@ -196,13 +196,13 @@ public class TimelineChartToolTip extends AbstractChartToolTip
         GridLayoutFactory.swtDefaults().numColumns(2).applyTo(data);
 
         Label left = new Label(data, SWT.NONE);
-        left.setText(categoryEnabled ? getSWTChart().getAxisSet().getXAxis(0).getTitle().getText()
+        left.setText(categoryEnabled ? getChart().getAxisSet().getXAxis(0).getTitle().getText()
                         : Messages.ColumnDate);
 
         Label right = new Label(data, SWT.NONE);
         right.setText(formatXAxisData(getFocusedObject()));
 
-        List<Pair<ISeries, Double>> values = computeValues(getSWTChart().getSeriesSet().getSeries());
+        List<Pair<ISeries, Double>> values = computeValues(getChart().getSeriesSet().getSeries());
 
         if (reverseLabels)
             Collections.reverse(values);
@@ -289,7 +289,7 @@ public class TimelineChartToolTip extends AbstractChartToolTip
         if (xAxisFormat != null)
             return xAxisFormat.apply(obj);
         else if (categoryEnabled && obj instanceof Integer integer)
-            return getSWTChart().getAxisSet().getXAxis(0).getCategorySeries()[integer];
+            return getChart().getAxisSet().getXAxis(0).getCategorySeries()[integer];
         else if (obj instanceof Date date)
             return Values.Date.format(date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
         else
