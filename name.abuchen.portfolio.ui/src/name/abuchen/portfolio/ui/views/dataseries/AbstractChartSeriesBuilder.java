@@ -42,7 +42,6 @@ public abstract class AbstractChartSeriesBuilder
         lineSeries.enableArea(series.isShowArea());
         lineSeries.setLineStyle(series.getLineStyle());
         lineSeries.setLineWidth(series.getLineWidth());
-
     }
 
     protected void configure(DataSeries series, IBarSeries barSeries)

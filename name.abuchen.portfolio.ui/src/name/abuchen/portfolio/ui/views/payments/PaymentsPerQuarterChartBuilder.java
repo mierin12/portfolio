@@ -144,8 +144,6 @@ public class PaymentsPerQuarterChartBuilder implements PaymentsChartBuilder
     @Override
     public void configure(Chart chart, Consumer<TabularDataSource> selectionListener)
     {
-        // chart.setData(UIConstants.CSS.CLASS_NAME, "chart"); //$NON-NLS-1$
-
         IAxis xAxis = chart.getAxisSet().getXAxis(0);
         xAxis.getTick().setVisible(true);
         xAxis.getTitle().setVisible(false);

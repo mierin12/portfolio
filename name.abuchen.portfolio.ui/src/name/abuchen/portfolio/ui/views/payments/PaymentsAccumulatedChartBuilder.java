@@ -15,7 +15,6 @@ import org.eclipse.swtchart.ISeries.SeriesType;
 
 import name.abuchen.portfolio.money.Values;
 import name.abuchen.portfolio.ui.Messages;
-import name.abuchen.portfolio.ui.UIConstants;
 import name.abuchen.portfolio.ui.util.TabularDataSource;
 import name.abuchen.portfolio.ui.util.chart.TimelineChartToolTip;
 import name.abuchen.portfolio.ui.util.format.AmountNumberFormat;
@@ -38,8 +37,6 @@ public class PaymentsAccumulatedChartBuilder implements PaymentsChartBuilder
     @Override
     public void configure(Chart chart, Consumer<TabularDataSource> selectionListener)
     {
-        chart.setData(UIConstants.CSS.CLASS_NAME, "chart"); //$NON-NLS-1$
-
         IAxis xAxis = chart.getAxisSet().getXAxis(0);
         xAxis.enableCategory(true);
         // format symbols returns 13 values as some calendars have 13 months
