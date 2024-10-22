@@ -68,6 +68,7 @@ public class PaymentsChartTab implements PaymentsTab
     public Control createControl(Composite parent)
     {
         resources = new LocalResourceManager(JFaceResources.getResources(), parent);
+
         chart = new PlainChart(parent, SWT.NONE);
 
         chart.setData(UIConstants.CSS.CLASS_NAME, "chart"); //$NON-NLS-1$
