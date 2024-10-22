@@ -7,7 +7,6 @@ import org.eclipse.e4.ui.di.UIEventTopic;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.LocalResourceManager;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swtchart.Chart;
@@ -69,11 +68,7 @@ public class PaymentsChartTab implements PaymentsTab
     public Control createControl(Composite parent)
     {
         resources = new LocalResourceManager(JFaceResources.getResources(), parent);
-
-        Composite container = new Composite(parent, SWT.NONE);
-        container.setLayout(new FillLayout());
-
-        chart = new PlainChart(container, SWT.NONE);
+        chart = new PlainChart(parent, SWT.NONE);
 
         chart.setData(UIConstants.CSS.CLASS_NAME, "chart"); //$NON-NLS-1$
 
@@ -116,7 +111,7 @@ public class PaymentsChartTab implements PaymentsTab
 
         model.addUpdateListener(this::updateChart);
 
-        return container;
+        return chart;
     }
 
     private void updateChart()
