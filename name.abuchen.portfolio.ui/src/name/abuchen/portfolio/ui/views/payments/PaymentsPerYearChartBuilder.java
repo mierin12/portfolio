@@ -168,15 +168,6 @@ public class PaymentsPerYearChartBuilder implements PaymentsChartBuilder
                 barSeries.setBarPadding(25);
                 barSeries.setBarOverlay(true);
             }
-
-            // Un-suspend chart to force SWTChart to update the stackSeries.
-            // Otherwise the internal metadata is not correct and SWTChart does
-            // not recognized them fully as stacked series
-            if (chart.isUpdateSuspended())
-            {
-                chart.suspendUpdate(false);
-                chart.suspendUpdate(true);
-            }
     }
 
     private void updateCategorySeries(Chart chart, PaymentsViewModel model)
