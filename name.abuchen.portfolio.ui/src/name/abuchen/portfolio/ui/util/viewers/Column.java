@@ -73,6 +73,7 @@ public class Column
     private String groupLabel;
     private String menuLabel;
     private String description;
+    private String labelOnly;
 
     private ColumnEditingSupport editingSupport;
 
@@ -205,6 +206,11 @@ public class Column
         this.editingSupport = editingSupport;
     }
 
+    public void setLabelOnly(String labelOnly)
+    {
+        this.labelOnly = labelOnly;
+    }
+
     /* package */String getLabel()
     {
         return label;
@@ -285,6 +291,15 @@ public class Column
         return groupLabel;
     }
 
+    /* package */boolean hasLabelOnly()
+    {
+        return labelOnly != null;
+    }
+
+    /* package */String getLabelOnly()
+    {
+        return labelOnly;
+    }
     public ColumnEditingSupport getEditingSupport()
     {
         return editingSupport;

@@ -1077,6 +1077,7 @@ public class SecuritiesPerformanceView extends AbstractFinanceView implements Re
         // cost value per share - FIFO
         Column column = new Column("pp", Messages.ColumnPurchasePrice, SWT.RIGHT, 75); //$NON-NLS-1$
         column.setGroupLabel(Messages.ColumnPurchasePrice);
+        column.setLabelOnly("Method : FIFO");
         column.setDescription(Messages.ColumnPurchasePrice_Description + TextUtil.PARAGRAPH_BREAK
                         + Messages.DescriptionDataRelativeToReportingPeriod);
         column.setImage(Images.INTERVAL);
@@ -1117,7 +1118,8 @@ public class SecuritiesPerformanceView extends AbstractFinanceView implements Re
         // cost value per share - moving average
         column = new Column("ppmvavg", Messages.ColumnPurchasePriceMovingAverage, SWT.RIGHT, 75); //$NON-NLS-1$
         column.setGroupLabel(Messages.ColumnPurchasePrice);
-        column.setMenuLabel(Messages.ColumnPurchasePriceMovingAverage_MenuLabel);
+        column.setLabelOnly("Method : Moving average");
+        column.setMenuLabel(Messages.ColumnPurchasePrice);
         column.setDescription(Messages.ColumnPurchasePriceMovingAverage_Description + TextUtil.PARAGRAPH_BREAK
                         + Messages.DescriptionDataRelativeToReportingPeriod);
         column.setImage(Images.INTERVAL);
@@ -1131,7 +1133,7 @@ public class SecuritiesPerformanceView extends AbstractFinanceView implements Re
         // cost value per share including fees and taxes - moving average
         column = new Column("grossppmvavg", Messages.ColumnGrossPurchasePriceMovingAverage, SWT.RIGHT, 75); //$NON-NLS-1$
         column.setGroupLabel(Messages.ColumnPurchasePrice);
-        column.setMenuLabel(Messages.ColumnGrossPurchasePriceMovingAverage_MenuLabel);
+        column.setMenuLabel(Messages.ColumnGrossPurchasePriceFIFO);
         column.setDescription(Messages.ColumnGrossPurchasePriceMovingAverage_Description + TextUtil.PARAGRAPH_BREAK
                         + Messages.DescriptionDataRelativeToReportingPeriod);
         column.setImage(Images.INTERVAL);
@@ -1145,7 +1147,7 @@ public class SecuritiesPerformanceView extends AbstractFinanceView implements Re
         // cost value - moving average
         column = new Column("pvmvavg", Messages.ColumnPurchaseValueMovingAverage, SWT.RIGHT, 75); //$NON-NLS-1$
         column.setGroupLabel(Messages.ColumnPurchasePrice);
-        column.setMenuLabel(Messages.ColumnPurchaseValueMovingAverage_MenuLabel);
+        column.setMenuLabel(Messages.ColumnPurchaseValue);
         column.setDescription(Messages.ColumnPurchaseValueMovingAverage_Description + TextUtil.PARAGRAPH_BREAK
                         + Messages.DescriptionDataRelativeToReportingPeriod);
         column.setImage(Images.INTERVAL);
