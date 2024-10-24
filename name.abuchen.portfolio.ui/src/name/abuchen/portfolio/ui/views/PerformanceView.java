@@ -203,8 +203,10 @@ public class PerformanceView extends AbstractHistoricView
         createEarningsByAccountsItem(folder, Messages.PerformanceTabEarningsByAccount);
         taxes = createTransactionViewer(folder, Messages.PerformanceTabTaxes);
         fees = createTransactionViewer(folder, Messages.PerformanceTabFees);
-        deposits = createTransactionViewer(folder, Messages.TransactionFilterDeposit);
-        removals = createTransactionViewer(folder, Messages.TransactionFilterRemoval);
+        deposits = createTransactionViewer(folder,
+                        Messages.LabelPNTransfers + " : " + Messages.TransactionFilterDeposit); //$NON-NLS-1$
+        removals = createTransactionViewer(folder,
+                        Messages.LabelPNTransfers + " : " + Messages.TransactionFilterRemoval); //$NON-NLS-1$
 
         folder.setSelection(0);
 
