@@ -1109,7 +1109,7 @@ public class SecuritiesPerformanceView extends AbstractFinanceView implements Re
     {
         // cost value per share - FIFO
         Column column = new Column("pp", Messages.ColumnPurchasePrice, SWT.RIGHT, 75); //$NON-NLS-1$
-        column.setLabelOnly("Fees and taxes not included");
+        column.setLabelOnly(Messages.LabelFeesAndTaxesNotIncluded);
         column.setGroupLabel(Messages.ColumnPurchasePrice);
         column.setMenuLabel(Messages.ColumnPurchasePrice_MenuLabel);
         column.setDescription(Messages.ColumnPurchasePrice_Description + TextUtil.PARAGRAPH_BREAK
@@ -1139,7 +1139,7 @@ public class SecuritiesPerformanceView extends AbstractFinanceView implements Re
         column = new Column("grosspp", Messages.ColumnGrossPurchasePriceFIFO, SWT.RIGHT, 75); //$NON-NLS-1$
         column.setGroupLabel(Messages.ColumnPurchasePrice);
         column.setMenuLabel(Messages.ColumnGrossPurchasePriceFIFO_MenuLabel);
-        column.setLabelOnly("Fees and taxes included");
+        column.setLabelOnly(Messages.LabelFeesAndTaxesIncluded);
         column.setDescription(Messages.ColumnGrossPurchasePriceFIFO_Description + TextUtil.PARAGRAPH_BREAK
                         + Messages.DescriptionDataRelativeToReportingPeriod);
         column.setImage(Images.INTERVAL);

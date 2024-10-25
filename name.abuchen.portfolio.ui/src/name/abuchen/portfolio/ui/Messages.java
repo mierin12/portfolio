@@ -678,6 +678,8 @@ public class Messages extends NLS
     public static String LabelExport;
     public static String LabelFees;
     public static String LabelFeesAccumulated;
+    public static String LabelFeesAndTaxesIncluded;
+    public static String LabelFeesAndTaxesNotIncluded;
     public static String LabelFirstDayOfWeek;
     public static String LabelFontSize;
     public static String LabelFormatJSON;
