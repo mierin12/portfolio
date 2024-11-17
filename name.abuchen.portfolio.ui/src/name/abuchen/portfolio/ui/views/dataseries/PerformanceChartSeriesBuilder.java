@@ -1,6 +1,7 @@
 package name.abuchen.portfolio.ui.views.dataseries;
 
 import org.eclipse.swt.graphics.Color;
+
 import name.abuchen.portfolio.snapshot.Aggregation;
 import name.abuchen.portfolio.snapshot.PerformanceIndex;
 import name.abuchen.portfolio.ui.Messages;
@@ -79,13 +80,15 @@ public class PerformanceChartSeriesBuilder extends AbstractChartSeriesBuilder
                 String lineIDPos = aggreagtionPeriodLabel + "Positive"; //$NON-NLS-1$
                 String lineIDNeg = aggreagtionPeriodLabel + "Negative"; //$NON-NLS-1$
 
-                var barSeriesPOS = getChart().addDateBarSeries(series.getUUID() + "Positive", index.getDates(),
+                var barSeriesPOS = getChart().addDateBarSeries(series.getUUID() + "Positive", index.getDates(), //$NON-NLS-1$
                                 valuesRelativePositive, colorDeltaPositive, lineIDPos);
                 barSeriesPOS.setBarPadding(50);
+                barSeriesPOS.setBarOverlay(true);
 
-                var barSeriesNEG = getChart().addDateBarSeries(series.getUUID() + "Negative", index.getDates(),
+                var barSeriesNEG = getChart().addDateBarSeries(series.getUUID() + "Negative", index.getDates(), //$NON-NLS-1$
                                 valuesRelativeNegative, colorDeltaNegative, lineIDNeg);
                 barSeriesNEG.setBarPadding(50);
+                barSeriesNEG.setBarOverlay(true);
                 // update label, e.g. 'daily' to 'weekly'
                 series.setLabel(aggreagtionPeriodLabel);
                 // configure(series, barSeries);

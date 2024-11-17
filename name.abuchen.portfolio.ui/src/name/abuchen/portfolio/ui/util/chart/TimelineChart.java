@@ -234,7 +234,8 @@ public class TimelineChart extends Chart // NOSONAR
         return addDateBarSeries(id, dates, values, Colors.DARK_GRAY, label);
     }
 
-    public IBarSeries addDateBarSeries(String id, LocalDate[] dates, double[] values, Color color, String label)
+    public IBarSeries<Integer> addDateBarSeries(String id, LocalDate[] dates, double[] values, Color color,
+                    String label)
     {
         @SuppressWarnings("unchecked")
         var barSeries = (IBarSeries<Integer>) getSeriesSet().createSeries(SeriesType.BAR, id);
