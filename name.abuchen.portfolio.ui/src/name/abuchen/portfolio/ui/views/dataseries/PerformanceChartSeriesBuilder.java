@@ -1,14 +1,19 @@
 package name.abuchen.portfolio.ui.views.dataseries;
 
+import org.eclipse.swt.graphics.Color;
 import name.abuchen.portfolio.snapshot.Aggregation;
 import name.abuchen.portfolio.snapshot.PerformanceIndex;
 import name.abuchen.portfolio.ui.Messages;
+import name.abuchen.portfolio.ui.util.Colors;
 import name.abuchen.portfolio.ui.util.chart.TimelineChart;
 import name.abuchen.portfolio.ui.views.dataseries.DataSeries.ClientDataSeries;
 import name.abuchen.portfolio.util.Interval;
 
 public class PerformanceChartSeriesBuilder extends AbstractChartSeriesBuilder
 {
+    private Color colorDeltaPositive = Colors.getColor(55, 117, 0); // #377500
+    private Color colorDeltaNegative = Colors.getColor(127, 0, 0); // #7f0000
+
     public PerformanceChartSeriesBuilder(TimelineChart chart, DataSeriesCache cache)
     {
         super(chart, cache);
@@ -52,11 +57,38 @@ public class PerformanceChartSeriesBuilder extends AbstractChartSeriesBuilder
             case DELTA_PERCENTAGE:
                 String aggreagtionPeriodLabel = aggregationPeriod != null ? aggregationPeriod.toString()
                                 : Messages.LabelAggregationDaily;
-                var barSeries = getChart().addDateBarSeries(series.getUUID(), index.getDates(),
-                                index.getDeltaPercentage(), aggreagtionPeriodLabel);
+
+                double[] values = index.getDeltaPercentage();
+
+                double[] valuesRelativePositive = new double[values.length];
+                double[] valuesRelativeNegative = new double[values.length];
+                for (int ii = 0; ii < values.length; ii++)
+                {
+                    if (values[ii] >= 0)
+                    {
+                        valuesRelativePositive[ii] = values[ii];
+                        valuesRelativeNegative[ii] = 0;
+                    }
+                    else
+                    {
+                        valuesRelativePositive[ii] = 0;
+                        valuesRelativeNegative[ii] = values[ii];
+                    }
+                }
+
+                String lineIDPos = aggreagtionPeriodLabel + "Positive"; //$NON-NLS-1$
+                String lineIDNeg = aggreagtionPeriodLabel + "Negative"; //$NON-NLS-1$
+
+                var barSeriesPOS = getChart().addDateBarSeries(series.getUUID() + "Positive", index.getDates(),
+                                valuesRelativePositive, colorDeltaPositive, lineIDPos);
+                barSeriesPOS.setBarPadding(50);
+
+                var barSeriesNEG = getChart().addDateBarSeries(series.getUUID() + "Negative", index.getDates(),
+                                valuesRelativeNegative, colorDeltaNegative, lineIDNeg);
+                barSeriesNEG.setBarPadding(50);
                 // update label, e.g. 'daily' to 'weekly'
                 series.setLabel(aggreagtionPeriodLabel);
-                configure(series, barSeries);
+                // configure(series, barSeries);
                 break;
             default:
                 break;
