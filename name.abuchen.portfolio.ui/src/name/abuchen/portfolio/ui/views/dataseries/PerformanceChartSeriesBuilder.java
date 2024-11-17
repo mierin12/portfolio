@@ -77,21 +77,31 @@ public class PerformanceChartSeriesBuilder extends AbstractChartSeriesBuilder
                     }
                 }
 
-                String lineIDPos = aggreagtionPeriodLabel + "Positive"; //$NON-NLS-1$
-                String lineIDNeg = aggreagtionPeriodLabel + "Negative"; //$NON-NLS-1$
+                String barIDPos = aggreagtionPeriodLabel + "Positive"; //$NON-NLS-1$
+                String barIDNeg = aggreagtionPeriodLabel + "Negative"; //$NON-NLS-1$
 
                 var barSeriesPOS = getChart().addDateBarSeries(series.getUUID() + "Positive", index.getDates(), //$NON-NLS-1$
-                                valuesRelativePositive, colorDeltaPositive, lineIDPos);
+                                valuesRelativePositive, colorDeltaPositive, barIDPos);
                 barSeriesPOS.setBarPadding(50);
                 barSeriesPOS.setBarOverlay(true);
 
                 var barSeriesNEG = getChart().addDateBarSeries(series.getUUID() + "Negative", index.getDates(), //$NON-NLS-1$
-                                valuesRelativeNegative, colorDeltaNegative, lineIDNeg);
+                                valuesRelativeNegative, colorDeltaNegative, barIDNeg);
                 barSeriesNEG.setBarPadding(50);
                 barSeriesNEG.setBarOverlay(true);
+
+                var barSeries = getChart().addDateBarSeries(series.getUUID(), index.getDates(),
+                                index.getDeltaPercentage(), aggreagtionPeriodLabel);
+                barSeries.setBarOverlay(true);
+                barSeries.setVisible(false);
                 // update label, e.g. 'daily' to 'weekly'
                 series.setLabel(aggreagtionPeriodLabel);
-                // configure(series, barSeries);
+                configure(series, barSeries);
+
+                var toolTip = getChart().getToolTip();
+                toolTip.addSeriesExclude(series.getUUID() + "Positive"); //$NON-NLS-1$
+                toolTip.addSeriesExclude(series.getUUID() + "Negative"); //$NON-NLS-1$
+
                 break;
             default:
                 break;
