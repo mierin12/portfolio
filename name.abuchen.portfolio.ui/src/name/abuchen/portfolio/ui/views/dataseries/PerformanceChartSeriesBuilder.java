@@ -92,8 +92,9 @@ public class PerformanceChartSeriesBuilder extends AbstractChartSeriesBuilder
 
                 var barSeries = getChart().addDateBarSeries(series.getUUID(), index.getDates(),
                                 index.getDeltaPercentage(), aggreagtionPeriodLabel);
-                barSeries.setBarOverlay(true);
                 barSeries.setVisible(false);
+                barSeries.setBarOverlay(true);
+
                 // update label, e.g. 'daily' to 'weekly'
                 series.setLabel(aggreagtionPeriodLabel);
                 configure(series, barSeries);
@@ -101,7 +102,6 @@ public class PerformanceChartSeriesBuilder extends AbstractChartSeriesBuilder
                 var toolTip = getChart().getToolTip();
                 toolTip.addSeriesExclude(series.getUUID() + "Positive"); //$NON-NLS-1$
                 toolTip.addSeriesExclude(series.getUUID() + "Negative"); //$NON-NLS-1$
-
                 break;
             default:
                 break;
