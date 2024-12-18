@@ -42,6 +42,7 @@ import name.abuchen.portfolio.ui.dialogs.balance.TroubleshootBalanceDiscrepancyD
 import name.abuchen.portfolio.ui.editor.AbstractFinanceView;
 import name.abuchen.portfolio.ui.handlers.ImportCSVHandler;
 import name.abuchen.portfolio.ui.handlers.ImportPDFHandler;
+import name.abuchen.portfolio.ui.util.ClientFilterMenu;
 import name.abuchen.portfolio.ui.util.ConfirmAction;
 import name.abuchen.portfolio.ui.util.DropDown;
 import name.abuchen.portfolio.ui.util.LogoManager;
@@ -120,8 +121,14 @@ public class AccountListView extends AbstractFinanceView implements Modification
             accounts.editElement(account, 0);
         };
 
+        ClientFilterMenu clientFilterMenu = new ClientFilterMenu(getClient(), getPreferenceStore());
+
         manager.add(new DropDown(Messages.MenuCreateAccountOrTransaction, Images.PLUS, SWT.NONE, menuListener -> {
             menuListener.add(new SimpleAction(Messages.AccountMenuAdd, newAccountAction));
+
+            menuListener.add(new Separator());
+
+            clientFilterMenu.createAndManageFilter(menuListener);
 
             menuListener.add(new Separator());
 
@@ -332,6 +339,11 @@ public class AccountListView extends AbstractFinanceView implements Modification
 
         action.setEnabled(account.getTransactions().isEmpty());
         manager.add(action);
+
+        manager.add(new Separator());
+
+        ClientFilterMenu clientFilterMenu = new ClientFilterMenu(getClient(), getPreferenceStore());
+        clientFilterMenu.createAndManageFilter(manager);
     }
 
     // //////////////////////////////////////////////////////////////
