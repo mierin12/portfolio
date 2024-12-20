@@ -101,6 +101,19 @@ public class DataSeriesSet
                 if (type == ClientDataSeries.DELTA_PERCENTAGE)
                     continue; // NOSONAR
 
+                boolean isLine = true;
+                boolean isArea = false;
+
+                if (type == ClientDataSeries.DIVIDENDS || type == ClientDataSeries.EARNINGS
+                                || type == ClientDataSeries.FEES || type == ClientDataSeries.INTEREST
+                                || type == ClientDataSeries.INTEREST_CHARGE || type == ClientDataSeries.TAXES
+                                || type == ClientDataSeries.TRANSFERALS)
+                    isLine = false;
+
+                if (type == ClientDataSeries.ABSOLUTE_INVESTED_CAPITAL || type == ClientDataSeries.INVESTED_CAPITAL
+                                || type == ClientDataSeries.TRANSFERALS_ACCUMULATED)
+                    isArea = true;
+
                 // skip interest and interest charge for portfolios and
                 // securities - not supported
                 if ((baseDataSeries.getType() == DataSeries.Type.SECURITY
@@ -115,8 +128,8 @@ public class DataSeriesSet
                 var dataSeries = new DataSeries(DataSeries.Type.DERIVED_DATA_SERIES, baseDataSeries.getGroup(),
                                 new DerivedDataSeries(baseDataSeries, type), label, wheel.next());
 
-                dataSeries.setLineChart(baseDataSeries.isLineChart());
-                dataSeries.setShowArea(baseDataSeries.isShowArea());
+                dataSeries.setLineChart(isLine);
+                dataSeries.setShowArea(isArea);
 
                 availableDerivedSeries.add(dataSeries);
             }
