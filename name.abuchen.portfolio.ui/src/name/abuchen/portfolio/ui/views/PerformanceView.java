@@ -226,7 +226,8 @@ public class PerformanceView extends AbstractHistoricView
             for (TreeItem element : calculation.getTree().getItems())
             {
                 ClientPerformanceSnapshot.Category node = (ClientPerformanceSnapshot.Category) element.getData();
-                if (node instanceof ClientPerformanceSnapshot.Category && uuid.contains(node.getLabel()))
+                if (node instanceof ClientPerformanceSnapshot.Category && uuid
+                                .contains(ClientPerformanceSnapshot.getCategoryTypeByLabel(node.getLabel())))
                     expanded.add(node);
             }
 
@@ -263,7 +264,7 @@ public class PerformanceView extends AbstractHistoricView
             ClientPerformanceSnapshot.Category node = (ClientPerformanceSnapshot.Category) element;
             if (!(node instanceof ClientPerformanceSnapshot.Category))
                 continue;
-            expansionState.add(node.getLabel());
+            expansionState.add(ClientPerformanceSnapshot.getCategoryTypeByLabel(node.getLabel()));
         }
         expansionStateDefinition = expansionState.toString();
         getPreferenceStore().setValue(EXPANSION_STATE, expansionState.toString());

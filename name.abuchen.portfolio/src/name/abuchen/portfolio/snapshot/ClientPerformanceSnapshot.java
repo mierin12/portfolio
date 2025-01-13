@@ -7,6 +7,7 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -221,6 +222,26 @@ public class ClientPerformanceSnapshot
     public Category getCategoryByType(CategoryType type)
     {
         return categories.get(type);
+    }
+
+    public static String getCategoryTypeByLabel(String label)
+    {
+        if (Objects.equals(label, Messages.ColumnCapitalGains))
+            return CategoryType.CAPITAL_GAINS.toString();
+        else if (Objects.equals(label, Messages.LabelRealizedCapitalGains))
+            return CategoryType.REALIZED_CAPITAL_GAINS.toString();
+        else if (Objects.equals(label, Messages.ColumnEarnings))
+            return CategoryType.EARNINGS.toString();
+        else if (Objects.equals(label, Messages.ColumnCurrencyGains))
+            return CategoryType.CURRENCY_GAINS.toString();
+        else if (Objects.equals(label, Messages.ColumnPaidFees))
+            return CategoryType.FEES.toString();
+        else if (Objects.equals(label, Messages.ColumnPaidTaxes))
+            return CategoryType.TAXES.toString();
+        else if (Objects.equals(label, Messages.ColumnTransfers))
+            return CategoryType.TRANSFERS.toString();
+        else
+            return CategoryType.FINAL_VALUE.toString();
     }
 
     public Money getValue(CategoryType categoryType)
