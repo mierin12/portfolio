@@ -35,6 +35,7 @@ import org.eclipse.swt.dnd.DragSourceAdapter;
 import org.eclipse.swt.dnd.DragSourceEvent;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.dnd.TransferData;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -267,6 +268,19 @@ public class GroupedAccountListView extends AbstractFinanceView implements Modif
                     return Images.GROUPEDACCOUNTS.image();
                 else
                     return super.getImage(element);
+            }
+
+            @Override
+            public Color getForeground(Object e)
+            {
+                boolean isRetired;
+                switch (e)
+                {
+                    case Portfolio portfolio -> isRetired = portfolio.isRetired();
+                    case Account account -> isRetired = account.isRetired();
+                    default -> isRetired = false;
+                }
+                return isRetired ? Display.getDefault().getSystemColor(SWT.COLOR_DARK_GRAY) : null;
             }
         });
         new StringEditingSupport(ClientFilterMenu.Item.class, "label").setMandatory(true) //$NON-NLS-1$
