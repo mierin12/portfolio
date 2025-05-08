@@ -45,6 +45,7 @@ public class Trade implements Adaptable
     private double irr;
 
     private LazyValue<Money> entryValueMovingAverage;
+    private LazyValue<Money> entryValueMovingAverageGross;
 
     public Trade(Security security, Portfolio portfolio, long shares)
     {
@@ -151,6 +152,43 @@ public class Trade implements Adaptable
                             .setScale(0, RoundingMode.HALF_DOWN).longValue();
             return Money.of(totalCosts.getCurrencyCode(), cost);
         });
+
+        this.entryValueMovingAverageGross = new LazyValue<>(() -> {
+            var closingTransaction = transactions.stream() //
+                            .filter(t -> t.getTransaction().getType().isLiquidation()) //
+                            .findFirst().map(t -> t.getTransaction());
+
+            Client filteredClient = client;
+            if (closingTransaction.isPresent())
+            {
+                // if a closing transaction is present, we need to calculate the
+                // moving average costs based on all transactions before the
+                // closing transaction
+                filteredClient = new ClientTransactionFilter(security, closingTransaction.get()).filter(client);
+            }
+
+            var snapshot = LazySecurityPerformanceSnapshot.create(filteredClient, converter,
+                            Interval.of(LocalDate.MIN,
+                                            closingTransaction.isPresent()
+                                                            ? closingTransaction.get().getDateTime().toLocalDate()
+                                                            : LocalDate.now()));
+            var r = snapshot.getRecord(security);
+            if (r.isEmpty())
+                return null;
+
+            // the trade might be a partial liquidation, so we have to calculate
+            // the moving average purchase value based on the number of shares
+            // sold
+
+            var totalCosts = r.get().getMovingAverageCostGross().get();
+            var totalShares = r.get().getSharesHeld().get();
+
+            var cost = BigDecimal.valueOf(shares / (double) totalShares) //
+                            .multiply(BigDecimal.valueOf(totalCosts.getAmount())) //
+                            .setScale(0, RoundingMode.HALF_DOWN).longValue();
+            return Money.of(totalCosts.getCurrencyCode(), cost);
+        });
+
     }
 
     private void calculateIRR(CurrencyConverter converter)
@@ -270,7 +308,7 @@ public class Trade implements Adaptable
     {
         if (exitGrossValue == null)
             return null;
-        return exitGrossValue.subtract(entryValueMovingAverage.get());
+        return exitGrossValue.subtract(entryValueMovingAverageGross.get());
     }
 
     public long getHoldingPeriod()
