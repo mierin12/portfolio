@@ -380,8 +380,17 @@ public class TradesTableViewer
         support.addColumn(column);
 
         column = new Column("return", Messages.ColumnReturn, SWT.RIGHT, 80); //$NON-NLS-1$
+        column.setGroupLabel(Messages.ColumnReturn);
         column.setLabelProvider(new NumberColorLabelProvider<>(Values.Percent2, t -> ((Trade) t).getReturn()));
         column.setSorter(ColumnViewerSorter.create(e -> ((Trade) e).getReturn()));
+        column.setVisible(false);
+        support.addColumn(column);
+
+        column = new Column("return moving average", Messages.ColumnReturn, SWT.RIGHT, 80); //$NON-NLS-1$
+        column.setGroupLabel(Messages.ColumnReturn);
+        column.setLabelProvider(
+                        new NumberColorLabelProvider<>(Values.Percent2, t -> ((Trade) t).getReturnMovingAverage()));
+        column.setSorter(ColumnViewerSorter.create(e -> ((Trade) e).getReturnMovingAverage()));
         column.setVisible(false);
         support.addColumn(column);
 
