@@ -117,78 +117,8 @@ public class Trade implements Adaptable
 
         calculateIRR(converter);
 
-        this.entryValueMovingAverage = new LazyValue<>(() -> {
-            var closingTransaction = transactions.stream() //
-                            .filter(t -> t.getTransaction().getType().isLiquidation()) //
-                            .findFirst().map(t -> t.getTransaction());
-
-            Client filteredClient = client;
-            if (closingTransaction.isPresent())
-            {
-                // if a closing transaction is present, we need to calculate the
-                // moving average costs based on all transactions before the
-                // closing transaction
-                filteredClient = new ClientTransactionFilter(security, closingTransaction.get()).filter(client);
-            }
-
-            var snapshot = LazySecurityPerformanceSnapshot.create(filteredClient, converter,
-                            Interval.of(LocalDate.MIN,
-                                            closingTransaction.isPresent()
-                                                            ? closingTransaction.get().getDateTime().toLocalDate()
-                                                            : LocalDate.now()));
-            var r = snapshot.getRecord(security);
-            if (r.isEmpty())
-                return null;
-
-            // the trade might be a partial liquidation, so we have to calculate
-            // the moving average purchase value based on the number of shares
-            // sold
-
-            var totalCosts = r.get().getMovingAverageCost().get();
-            var totalShares = r.get().getSharesHeld().get();
-
-            var cost = BigDecimal.valueOf(shares / (double) totalShares) //
-                            .multiply(BigDecimal.valueOf(totalCosts.getAmount())) //
-                            .setScale(0, RoundingMode.HALF_DOWN).longValue();
-            return Money.of(totalCosts.getCurrencyCode(), cost);
-        });
-
-        this.entryValueMovingAverageGross = new LazyValue<>(() -> {
-            var closingTransaction = transactions.stream() //
-                            .filter(t -> t.getTransaction().getType().isLiquidation()) //
-                            .findFirst().map(t -> t.getTransaction());
-
-            Client filteredClient = client;
-            if (closingTransaction.isPresent())
-            {
-                // if a closing transaction is present, we need to calculate the
-                // moving average costs based on all transactions before the
-                // closing transaction
-                filteredClient = new ClientTransactionFilter(security, closingTransaction.get()).filter(client);
-            }
-
-            var snapshot = LazySecurityPerformanceSnapshot.create(filteredClient, converter,
-                            Interval.of(LocalDate.MIN,
-                                            closingTransaction.isPresent()
-                                                            ? closingTransaction.get().getDateTime().toLocalDate()
-                                                            : LocalDate.now()));
-            var r = snapshot.getRecord(security);
-            if (r.isEmpty())
-                return null;
-
-            // the trade might be a partial liquidation, so we have to calculate
-            // the moving average purchase value based on the number of shares
-            // sold
-
-            var totalCosts = r.get().getMovingAverageCostGross().get();
-            var totalShares = r.get().getSharesHeld().get();
-
-            var cost = BigDecimal.valueOf(shares / (double) totalShares) //
-                            .multiply(BigDecimal.valueOf(totalCosts.getAmount())) //
-                            .setScale(0, RoundingMode.HALF_DOWN).longValue();
-            return Money.of(totalCosts.getCurrencyCode(), cost);
-        });
-
+        this.entryValueMovingAverage = new LazyValue<>(() -> getMovingAverageCost(client, converter, true));
+        this.entryValueMovingAverageGross = new LazyValue<>(() -> getMovingAverageCost(client, converter, false));
     }
 
     private void calculateIRR(CurrencyConverter converter)
@@ -372,5 +302,42 @@ public class Trade implements Adaptable
     {
         return String.format("<Trade sh=%s %s %s -> %s %s>", //$NON-NLS-1$
                         shares, start, entryValue, end, exitValue);
+    }
+
+    private Money getMovingAverageCost(Client client, CurrencyConverter converter, boolean netcost)
+    {
+        var closingTransaction = transactions.stream() //
+                        .filter(t -> t.getTransaction().getType().isLiquidation()) //
+                        .findFirst().map(t -> t.getTransaction());
+
+        Client filteredClient = client;
+        if (closingTransaction.isPresent())
+        {
+            // if a closing transaction is present, we need to calculate the
+            // moving average costs based on all transactions before the
+            // closing transaction
+            filteredClient = new ClientTransactionFilter(security, closingTransaction.get()).filter(client);
+        }
+
+        var snapshot = LazySecurityPerformanceSnapshot.create(filteredClient, converter,
+                        Interval.of(LocalDate.MIN,
+                                        closingTransaction.isPresent()
+                                                        ? closingTransaction.get().getDateTime().toLocalDate()
+                                                        : LocalDate.now()));
+        var r = snapshot.getRecord(security);
+        if (r.isEmpty())
+            return null;
+
+        // the trade might be a partial liquidation, so we have to calculate
+        // the moving average purchase value based on the number of shares
+        // sold
+
+        var totalCosts = netcost ? r.get().getMovingAverageCost().get() : r.get().getMovingAverageCostGross().get();
+        var totalShares = r.get().getSharesHeld().get();
+
+        var cost = BigDecimal.valueOf(shares / (double) totalShares) //
+                        .multiply(BigDecimal.valueOf(totalCosts.getAmount())) //
+                        .setScale(0, RoundingMode.HALF_DOWN).longValue();
+        return Money.of(totalCosts.getCurrencyCode(), cost);
     }
 }
