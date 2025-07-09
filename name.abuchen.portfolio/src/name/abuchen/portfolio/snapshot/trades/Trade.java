@@ -37,6 +37,7 @@ public class Trade implements Adaptable
     private final long shares;
 
     private List<TransactionPair<PortfolioTransaction>> transactions = new ArrayList<>();
+    private List<TransactionPair<PortfolioTransaction>> transactionsMovingAverage = new ArrayList<>();
 
     private Money entryValue;
     private Money entryValueWithoutTaxesAndFees;
@@ -198,6 +199,11 @@ public class Trade implements Adaptable
         return transactions;
     }
 
+    public List<TransactionPair<PortfolioTransaction>> getTransactionsMovingAverage()
+    {
+        return transactionsMovingAverage;
+    }
+
     public TransactionPair<PortfolioTransaction> getLastTransaction()
     {
         // transactions have been sorted by calculate(), which is called once
@@ -313,25 +319,22 @@ public class Trade implements Adaptable
 
     private Money getMovingAverageCost(Client client, CurrencyConverter converter, TaxesAndFees taxesAndFees)
     {
-        var closingTransaction = transactions.stream() //
-                        .filter(t -> t.getTransaction().getType().isLiquidation()) //
-                        .findFirst().map(t -> t.getTransaction());
-
-        Client filteredClient = client;
-        if (closingTransaction.isPresent())
+        // if a closing transaction is present, we need to calculate the
+        // moving average costs based on all transactions before the closing
+        // transaction
+        Client filteredClient;
+        if (!isClosed())
         {
-            // if a closing transaction is present, we need to calculate the
-            // moving average costs based on all transactions before the
-            // closing transaction
-
-            filteredClient = new ClientTransactionFilter(security, closingTransaction.get()).filter(client);
+            filteredClient = new ClientTransactionFilter(security, transactionsMovingAverage).filter(client);
         }
-
+        else
+        {
+            List<TransactionPair<PortfolioTransaction>> tempSubList = new ArrayList<>(transactionsMovingAverage)
+                            .subList(0, transactionsMovingAverage.size() - 1);
+            filteredClient = new ClientTransactionFilter(security, tempSubList).filter(client);
+        }
         var snapshot = LazySecurityPerformanceSnapshot.create(filteredClient, converter,
-                        Interval.of(LocalDate.MIN,
-                                        closingTransaction.isPresent()
-                                                        ? closingTransaction.get().getDateTime().toLocalDate()
-                                                        : LocalDate.now()));
+                        Interval.of(LocalDate.MIN, LocalDate.now()));
         var r = snapshot.getRecord(security);
         if (r.isEmpty())
             return null;
@@ -339,7 +342,6 @@ public class Trade implements Adaptable
         // the trade might be a partial liquidation, so we have to calculate
         // the moving average purchase value based on the number of shares
         // sold
-
         var totalCosts = taxesAndFees == TaxesAndFees.INCLUDED //
                         ? r.get().getMovingAverageCost().get()
                         : r.get().getMovingAverageCostWithoutTaxesAndFees().get();

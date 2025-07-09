@@ -1,12 +1,14 @@
 package name.abuchen.portfolio.snapshot.filter;
 
 import java.util.Collections;
+import java.util.List;
 
 import name.abuchen.portfolio.model.Account;
 import name.abuchen.portfolio.model.Client;
 import name.abuchen.portfolio.model.Portfolio;
 import name.abuchen.portfolio.model.PortfolioTransaction;
 import name.abuchen.portfolio.model.Security;
+import name.abuchen.portfolio.model.TransactionPair;
 import name.abuchen.portfolio.snapshot.trades.TradeCollector;
 
 /**
@@ -19,36 +21,19 @@ import name.abuchen.portfolio.snapshot.trades.TradeCollector;
  */
 public class ClientTransactionFilter implements ClientFilter
 {
+    private final List<TransactionPair<PortfolioTransaction>> transactions;
     private final Security security;
-    private final PortfolioTransaction transaction;
 
-    public ClientTransactionFilter(Security security, PortfolioTransaction transaction)
+    public ClientTransactionFilter(Security security, List<TransactionPair<PortfolioTransaction>> transactions)
     {
         this.security = security;
-        this.transaction = transaction;
+        this.transactions = transactions;
     }
 
     @Override
     public Client filter(Client client)
     {
-        var txs = security.getTransactions(client);
-
-        Collections.sort(txs, new TradeCollector.ByDateAndType());
-
-        // find the transactions in the list
-        var index = -1;
-        for (int ii = 0; ii < txs.size(); ii++)
-        {
-            if (txs.get(ii).getTransaction().equals(transaction))
-            {
-                index = ii;
-                break;
-            }
-        }
-
-        // limit the transactions to all transactions before the given one
-        if (index > 0)
-            txs = txs.subList(0, index);
+        Collections.sort(transactions, new TradeCollector.ByDateAndType());
 
         ReadOnlyClient pseudoClient = new ReadOnlyClient(client);
         pseudoClient.internalAddSecurity(security);
@@ -64,19 +49,11 @@ public class ClientTransactionFilter implements ClientFilter
         pp.setReferenceAccount(pa);
         pseudoClient.internalAddPortfolio(pp);
 
-        for (var tx : txs)
+        for (var tx : transactions)
         {
             var t = tx.getTransaction();
-
-            if (t instanceof PortfolioTransaction tp //
-                            && tp.getType() != PortfolioTransaction.Type.TRANSFER_IN
-                            && tp.getType() != PortfolioTransaction.Type.TRANSFER_OUT)
-            {
-                pp.internalAddTransaction(tp);
-            }
+            pp.internalAddTransaction(t);
         }
-
         return pseudoClient;
     }
-
 }
