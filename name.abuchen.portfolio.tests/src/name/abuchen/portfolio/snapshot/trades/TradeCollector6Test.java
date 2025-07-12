@@ -123,4 +123,122 @@ public class TradeCollector6Test
         assertThat(secondTrade.getReturnMovingAverage(), closeTo(0.9737, 0.0001));
     }
 
+    @Test
+    public void testTradesSeveralPortfolio() throws TradeCollectorException
+    {
+        Client client = new Client();
+
+        Security security = new SecurityBuilder().addPrice("2023-03-01", Values.Quote.factorize(200)) //
+                        .addTo(client);
+        new PortfolioBuilder(new Account("one")).inbound_delivery(security, "2022-01-01", Values.Share.factorize(5),
+                        Values.Amount.factorize(520), Values.Amount.factorize(10), Values.Amount.factorize(10))
+                        .inbound_delivery(security, "2022-02-01", Values.Share.factorize(10),
+                                        Values.Amount.factorize(1000))
+                        .outbound_delivery(security, "2022-03-01", Values.Share.factorize(10),
+                                        Values.Amount.factorize(1480), Values.Amount.factorize(10),
+                                        Values.Amount.factorize(10))
+                        .addTo(client);
+
+        new PortfolioBuilder(new Account("two")).inbound_delivery(security, "2022-01-01", Values.Share.factorize(5),
+                        Values.Amount.factorize(1000), Values.Amount.factorize(10), Values.Amount.factorize(10))
+                        .inbound_delivery(security, "2022-02-01", Values.Share.factorize(10),
+                                        Values.Amount.factorize(2000))
+                        .outbound_delivery(security, "2022-03-01", Values.Share.factorize(10),
+                                        Values.Amount.factorize(1480), Values.Amount.factorize(10),
+                                        Values.Amount.factorize(10))
+                        .addTo(client);
+
+        TradeCollector collector = new TradeCollector(client, new TestCurrencyConverter());
+
+        List<Trade> trades = collector.collect(security);
+
+        assertThat(trades.size(), is(4));
+
+        Trade firstTrade = trades.get(0);
+
+        assertThat(firstTrade.getStart(), is(LocalDateTime.parse("2022-01-01T00:00")));
+        assertThat(firstTrade.getEnd().isPresent(), is(true));
+
+        // 1480 - (520 + 1000 * 5/10) = 460
+        assertThat(firstTrade.getProfitLoss(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(460.00))));
+        // 1480 - (520 + 1000) * 10/15 = 466.67
+        assertThat(firstTrade.getProfitLossMovingAverage(),
+                        is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(466.67))));
+
+        // 1480+10+10 - (520-10-10 + 1000 * 5/10) = 500
+        assertThat(firstTrade.getProfitLossWithoutTaxesAndFees(),
+                        is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(500.00))));
+        // 1480+10+10 - (520-10-10 + 1000) * 10/15 = 500
+        assertThat(firstTrade.getProfitLossMovingAverageWithoutTaxesAndFees(),
+                        is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(500.00))));
+
+        // return : 1480/(520 + 1000 * 5/10)-1=0.45098
+        assertThat(firstTrade.getReturn(), closeTo(0.4510, 0.0001));
+        // return : 1480/[(520 + 1000) * 10/15]-1=0.46052
+        assertThat(firstTrade.getReturnMovingAverage(), closeTo(0.4605, 0.0001));
+
+        Trade secondTrade = trades.get(3);
+        assertThat(secondTrade.getEnd().isPresent(), is(false));
+        // 200 * 5 - (1000 * 5/10) = 500
+        assertThat(secondTrade.getProfitLoss(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(500.00))));
+        // 200 * 5 - (520 + 1000) * 5/15 = 493.33
+        assertThat(secondTrade.getProfitLossMovingAverage(),
+                        is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(493.33))));
+
+        // 200 * 5 - (1000 * 5/10) = 500
+        assertThat(secondTrade.getProfitLossWithoutTaxesAndFees(),
+                        is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(500.00))));
+        // 200 * 5 - (520-10-10 + 1000) * 5/15 = 500
+        assertThat(secondTrade.getProfitLossMovingAverageWithoutTaxesAndFees(),
+                        is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(500.00))));
+
+        // return : 200 * 5 / (1000 * 5/10)-1 = 1
+        assertThat(secondTrade.getReturn(), closeTo(1.0000, 0.0001));
+        // return : 200 * 5 / [(520 + 1000) * 5/15]-1 = 0.97368
+        assertThat(secondTrade.getReturnMovingAverage(), closeTo(0.9737, 0.0001));
+
+        Trade newTrade = trades.get(2);
+        assertThat(newTrade.getEnd().isPresent(), is(false));
+        // 200 * 5 - (2000 * 5/10) = 0
+        assertThat(newTrade.getProfitLoss(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(0.00))));
+        // 200 * 5 - (1000 + 2000) * 5/15 = 0
+        assertThat(newTrade.getProfitLossMovingAverage(),
+                        is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(0.00))));
+
+        // 200 * 5 - (2000 * 5/10) = 0
+        assertThat(newTrade.getProfitLossWithoutTaxesAndFees(),
+                        is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(0.00))));
+        // 200 * 5 - (1000-10-10 + 2000) * 5/15 = 6.666
+        assertThat(newTrade.getProfitLossMovingAverageWithoutTaxesAndFees(),
+                        is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(6.67))));
+
+        // return : 200 * 5 / (2000 * 5/10) - 1 = 0
+        assertThat(newTrade.getReturn(), closeTo(0.0000, 0.0001));
+        // return : 200 * 5 / [(1000 + 2000) * 5/15] - 1 = 0
+        assertThat(newTrade.getReturnMovingAverage(), closeTo(0, 0.0001));
+
+        Trade fourthTrade = trades.get(1);
+
+        assertThat(fourthTrade.getStart(), is(LocalDateTime.parse("2022-01-01T00:00")));
+        assertThat(fourthTrade.getEnd().isPresent(), is(true));
+
+        // 1480 - (1000 + 2000 * 5/10) = -520
+        assertThat(fourthTrade.getProfitLoss(), is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(-520.00))));
+        // 1480 - (1000 + 2000) * 10/15 = -520
+        assertThat(fourthTrade.getProfitLossMovingAverage(),
+                        is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(-520))));
+
+        // 1480+10+10 - (1000-10-10 + 2000 * 5/10) = -480
+        assertThat(fourthTrade.getProfitLossWithoutTaxesAndFees(),
+                        is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(-480.00))));
+        // 1480+10+10 - (1000-10-10 + 2000) * 10/15 = -486.666
+        assertThat(fourthTrade.getProfitLossMovingAverageWithoutTaxesAndFees(),
+                        is(Money.of(CurrencyUnit.EUR, Values.Amount.factorize(-486.67))));
+
+        // return : 1480/(1000 + 2000 * 5/10) - 1 = -0.26
+        assertThat(fourthTrade.getReturn(), closeTo(-0.26, 0.0001));
+        // return : 1480/[(1000 + 2000) * 10/15] - 1 = -0.26
+        assertThat(fourthTrade.getReturnMovingAverage(), closeTo(-0.26, 0.0001));
+    }
+
 }
