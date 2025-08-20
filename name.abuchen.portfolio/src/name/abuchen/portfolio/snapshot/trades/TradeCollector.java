@@ -126,13 +126,12 @@ public class TradeCollector
             switch (type)
             {
                 case BUY, DELIVERY_INBOUND:
-                    if (openList.isEmpty() || openList.get(0).getTransaction().getType().isPurchase() == type.isPurchase())
+                    allTransactions.computeIfAbsent(portfolio, p -> new ArrayList<>()).add(pair);
+                    if (openList.isEmpty()
+                                    || openList.get(0).getTransaction().getType().isPurchase() == type.isPurchase())
                         openList.add(pair);
                     else
-{
-                    openTransactions.computeIfAbsent(portfolio, p -> new ArrayList<>()).add(pair);
-                    allTransactions.computeIfAbsent(portfolio, p -> new ArrayList<>()).add(pair);
-                    }
+                        trades.add(createNewTrade(openTransactions, pair, allTransactions));
                     break;
 
                 case SELL, DELIVERY_OUTBOUND:
@@ -141,7 +140,8 @@ public class TradeCollector
                     // a new trade. (Note: it's an invariant that fifo contains
                     // transaction of the same type (purchase vs !purchase), so
                     // we test 0th element in fifo).
-                    if (openList.isEmpty() || openList.get(0).getTransaction().getType().isPurchase() == type.isPurchase())
+                    if (openList.isEmpty()
+                                    || openList.get(0).getTransaction().getType().isPurchase() == type.isPurchase())
                         openList.add(pair);
                     else
                         trades.add(createNewTrade(openTransactions, pair, allTransactions));
