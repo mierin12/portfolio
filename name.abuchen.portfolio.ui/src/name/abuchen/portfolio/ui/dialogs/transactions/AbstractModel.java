@@ -81,9 +81,9 @@ public abstract class AbstractModel
 
         StringBuilder tooltip = new StringBuilder();
         tooltip.append(Values.ExchangeRate.format(exchangeRate)) //
-                        .append(" ").append(term).append("/").append(base).append("\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+                        .append(" ").append(base).append("/").append(term).append("\n"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         tooltip.append(Values.ExchangeRate.format(inverseRate)) //
-                        .append(" ").append(base).append("/").append(term); //$NON-NLS-1$ //$NON-NLS-2$
+                        .append(" ").append(term).append("/").append(base); //$NON-NLS-1$ //$NON-NLS-2$
         return tooltip.toString();
     }
 }
