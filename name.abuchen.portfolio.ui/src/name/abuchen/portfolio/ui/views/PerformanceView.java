@@ -2,7 +2,12 @@ package name.abuchen.portfolio.ui.views;
 
 import java.text.MessageFormat;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.StringJoiner;
 import java.util.function.Function;
 
 import jakarta.inject.Inject;
@@ -33,6 +38,7 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.TreeItem;
 
 import name.abuchen.portfolio.model.Account;
 import name.abuchen.portfolio.model.AccountTransaction;
@@ -90,6 +96,8 @@ public class PerformanceView extends AbstractHistoricView
     private static final String CAPITAL_GAIN_USE_FIFO = PerformanceView.class.getSimpleName()
                     + "-CAPITAL_GAIN_USE_FIFO"; //$NON-NLS-1$
 
+    private static final String EXPANSION_STATE = PerformanceView.class.getSimpleName() + "-EXPANSION-DEFINITION"; //$NON-NLS-1$
+
     @Inject
     private SelectionService selectionService;
 
@@ -111,6 +119,8 @@ public class PerformanceView extends AbstractHistoricView
     private TableViewer earningsByAccount;
     private TableViewer taxes;
     private TableViewer fees;
+    private boolean isFirstView = true;
+    private String expansionStateDefinition;
 
     @Override
     protected String getDefaultTitle()
@@ -177,11 +187,16 @@ public class PerformanceView extends AbstractHistoricView
 
         ClientPerformanceSnapshot snapshot = new ClientPerformanceSnapshot(filteredClient, converter, period, useFifo);
 
+        if (!isFirstView)
+            storeExpansionState();
+        else
+            isFirstView = false;
+
         try
         {
             calculation.getTree().setRedraw(false);
             calculation.setInput(snapshot);
-            calculation.expandAll();
+            expandNodes();
             calculation.getTree().getParent().layout();
         }
         finally
@@ -200,11 +215,65 @@ public class PerformanceView extends AbstractHistoricView
         fees.setInput(snapshot.getFees());
     }
 
+    private void expandNodes()
+    {
+        List<ClientPerformanceSnapshot.Category> expanded = new ArrayList<>();
+
+        // check if we have expansion state in preferences
+        if (expansionStateDefinition != null && !expansionStateDefinition.isEmpty())
+        {
+            Set<String> uuid = new HashSet<>(Arrays.asList(expansionStateDefinition.split(","))); //$NON-NLS-1$
+            for (TreeItem element : calculation.getTree().getItems())
+            {
+                ClientPerformanceSnapshot.Category node = (ClientPerformanceSnapshot.Category) element.getData();
+                if (node instanceof ClientPerformanceSnapshot.Category && uuid.contains(node.getLabel()))
+                    expanded.add(node);
+            }
+
+            calculation.getTree().setRedraw(false);
+            try
+            {
+                calculation.setExpandedElements(expanded.toArray());
+            }
+            finally
+            {
+                calculation.getTree().setRedraw(true);
+            }
+        }
+        else
+        {
+            // fall back -> expand all grouped accounts
+            calculation.expandAll();
+        }
+    }
+
     @Override
     public void notifyModelUpdated()
     {
         reportingPeriodUpdated();
         updateTitle(getDefaultTitle());
+    }
+
+    public void storeExpansionState()
+    {
+        // store expansion state
+        StringJoiner expansionState = new StringJoiner(","); //$NON-NLS-1$
+        for (Object element : calculation.getExpandedElements())
+        {
+            ClientPerformanceSnapshot.Category node = (ClientPerformanceSnapshot.Category) element;
+            if (!(node instanceof ClientPerformanceSnapshot.Category))
+                continue;
+            expansionState.add(node.getLabel());
+        }
+        expansionStateDefinition = expansionState.toString();
+        getPreferenceStore().setValue(EXPANSION_STATE, expansionState.toString());
+    }
+
+    @Override
+    public void dispose()
+    {
+        storeExpansionState();
+        super.dispose();
     }
 
     @Override
@@ -243,6 +312,7 @@ public class PerformanceView extends AbstractHistoricView
             }
         }
 
+        expansionStateDefinition = getPreferenceStore().getString(EXPANSION_STATE);
         reportingPeriodUpdated();
         updateTitle(getDefaultTitle());
 
