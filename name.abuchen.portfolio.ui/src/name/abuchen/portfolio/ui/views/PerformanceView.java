@@ -3,16 +3,14 @@ package name.abuchen.portfolio.ui.views;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.Function;
 
 import jakarta.inject.Inject;
 
 import org.eclipse.e4.ui.services.IStylingEngine;
+import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.Separator;
@@ -26,7 +24,9 @@ import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.ITreeViewerListener;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TreeExpansionEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.window.ToolTip;
@@ -97,6 +97,8 @@ public class PerformanceView extends AbstractHistoricView
                     + "-CAPITAL_GAIN_USE_FIFO"; //$NON-NLS-1$
 
     private static final String EXPANSION_STATE = PerformanceView.class.getSimpleName() + "-EXPANSION-DEFINITION"; //$NON-NLS-1$
+    private static final String EXPANDED = "1"; //$NON-NLS-1$
+    private static final String COLLAPSED = "0"; //$NON-NLS-1$
 
     @Inject
     private SelectionService selectionService;
@@ -119,7 +121,7 @@ public class PerformanceView extends AbstractHistoricView
     private TableViewer earningsByAccount;
     private TableViewer taxes;
     private TableViewer fees;
-    private boolean isFirstView = true;
+
     private String expansionStateDefinition;
 
     @Override
@@ -187,16 +189,18 @@ public class PerformanceView extends AbstractHistoricView
 
         ClientPerformanceSnapshot snapshot = new ClientPerformanceSnapshot(filteredClient, converter, period, useFifo);
 
-        if (!isFirstView)
-            storeExpansionState();
-        else
-            isFirstView = false;
-
         try
         {
             calculation.getTree().setRedraw(false);
             calculation.setInput(snapshot);
-            expandNodes();
+            if (expansionStateDefinition != null && !expansionStateDefinition.isEmpty())
+            {
+                setTreeExpandedState(expansionStateDefinition);
+            }
+            else
+            {
+                calculation.expandAll();
+            }
             calculation.getTree().getParent().layout();
         }
         finally
@@ -217,24 +221,14 @@ public class PerformanceView extends AbstractHistoricView
 
     private void expandNodes()
     {
-        List<ClientPerformanceSnapshot.Category> expanded = new ArrayList<>();
-
+        expansionStateDefinition = getPreferenceStore().getString(EXPANSION_STATE);
         // check if we have expansion state in preferences
         if (expansionStateDefinition != null && !expansionStateDefinition.isEmpty())
         {
-            Set<String> uuid = new HashSet<>(Arrays.asList(expansionStateDefinition.split(","))); //$NON-NLS-1$
-            for (TreeItem element : calculation.getTree().getItems())
-            {
-                ClientPerformanceSnapshot.Category node = (ClientPerformanceSnapshot.Category) element.getData();
-                if (node instanceof ClientPerformanceSnapshot.Category && uuid
-                                .contains(ClientPerformanceSnapshot.getCategoryTypeByLabel(node.getLabel())))
-                    expanded.add(node);
-            }
-
             calculation.getTree().setRedraw(false);
             try
             {
-                calculation.setExpandedElements(expanded.toArray());
+                setTreeExpandedState(expansionStateDefinition);
             }
             finally
             {
@@ -243,7 +237,7 @@ public class PerformanceView extends AbstractHistoricView
         }
         else
         {
-            // fall back -> expand all grouped accounts
+            // fall back -> expand all
             calculation.expandAll();
         }
     }
@@ -257,17 +251,7 @@ public class PerformanceView extends AbstractHistoricView
 
     public void storeExpansionState()
     {
-        // store expansion state
-        StringJoiner expansionState = new StringJoiner(","); //$NON-NLS-1$
-        for (Object element : calculation.getExpandedElements())
-        {
-            ClientPerformanceSnapshot.Category node = (ClientPerformanceSnapshot.Category) element;
-            if (!(node instanceof ClientPerformanceSnapshot.Category))
-                continue;
-            expansionState.add(ClientPerformanceSnapshot.getCategoryTypeByLabel(node.getLabel()));
-        }
-        expansionStateDefinition = expansionState.toString();
-        getPreferenceStore().setValue(EXPANSION_STATE, expansionState.toString());
+        getPreferenceStore().setValue(EXPANSION_STATE, getTreeExpandedState());
     }
 
     @Override
@@ -313,10 +297,9 @@ public class PerformanceView extends AbstractHistoricView
             }
         }
 
-        expansionStateDefinition = getPreferenceStore().getString(EXPANSION_STATE);
         reportingPeriodUpdated();
         updateTitle(getDefaultTitle());
-
+        expandNodes();
         return folder;
     }
 
@@ -482,6 +465,22 @@ public class PerformanceView extends AbstractHistoricView
                                 ((ClientPerformanceSnapshot.Position) selection).getSecurity()));
         });
 
+        calculation.addTreeListener(new ITreeViewerListener()
+        {
+            @Override
+            public void treeExpanded(TreeExpansionEvent e)
+            {
+                if (e.getElement() instanceof ClientPerformanceSnapshot.Category changedElement)
+                    expansionStateDefinition = getUpdatedTreeExpandedState(changedElement, true);
+            }
+
+            @Override
+            public void treeCollapsed(TreeExpansionEvent e)
+            {
+                if (e.getElement() instanceof ClientPerformanceSnapshot.Category changedElement)
+                    expansionStateDefinition = getUpdatedTreeExpandedState(changedElement, false);
+            }
+        });
         CTabItem item = new CTabItem(folder, SWT.NONE);
         item.setText(title);
         item.setControl(container);
@@ -508,8 +507,18 @@ public class PerformanceView extends AbstractHistoricView
         if (obj == null)
             return;
 
-        manager.add(new SimpleAction(Messages.LabelExpand, a -> calculation.setExpandedState(obj, true))
+        manager.add(new Action(Messages.LabelExpand)
+
         {
+            @Override
+            public void run()
+            {
+                calculation.setExpandedState(obj, true);
+                if (obj instanceof ClientPerformanceSnapshot.Category changedElement)
+                    expansionStateDefinition = getUpdatedTreeExpandedState(changedElement, true);
+
+            }
+
             @Override
             public boolean isEnabled()
             {
@@ -517,8 +526,17 @@ public class PerformanceView extends AbstractHistoricView
             }
         });
 
-        manager.add(new SimpleAction(Messages.LabelCollapse, a -> calculation.setExpandedState(obj, false))
+        manager.add(new Action(Messages.LabelCollapse)
         {
+            @Override
+            public void run()
+            {
+                calculation.setExpandedState(obj, false);
+                if (obj instanceof ClientPerformanceSnapshot.Category changedElement)
+                    expansionStateDefinition = getUpdatedTreeExpandedState(changedElement, false);
+
+            }
+
             @Override
             public boolean isEnabled()
             {
@@ -1103,4 +1121,54 @@ public class PerformanceView extends AbstractHistoricView
                             : Colors.theme().redForeground();
         }
     }
+
+    private String getTreeExpandedState()
+    {
+        StringJoiner expansionState = new StringJoiner(","); //$NON-NLS-1$
+        for (TreeItem element : calculation.getTree().getItems())
+        {
+            if (element.getData() instanceof ClientPerformanceSnapshot.Category)
+            {
+                expansionState.add(element.getExpanded() ? EXPANDED : COLLAPSED);
+            }
+        }
+        return expansionState.toString();
+    }
+
+    private void setTreeExpandedState(String uuids)
+    {
+        List<ClientPerformanceSnapshot.Category> expandedaa = new ArrayList<>();
+        var uuid = uuids.split(","); //$NON-NLS-1$
+        int i = 0;
+        for (TreeItem element : calculation.getTree().getItems())
+        {
+            if (element.getData() instanceof ClientPerformanceSnapshot.Category node)
+            {
+                // check legnth
+                if (EXPANDED.equals(uuid[i]))
+                {
+                    expandedaa.add(node);
+                }
+                i++;
+            }
+        }
+        calculation.setExpandedElements(expandedaa.toArray());
+    }
+
+    private String getUpdatedTreeExpandedState(ClientPerformanceSnapshot.Category node, boolean expanded)
+    {
+        var uuid = expansionStateDefinition.split(","); //$NON-NLS-1$
+        int i = 0;
+        for (TreeItem element : calculation.getTree().getItems())
+        {
+            if (element.getData() instanceof ClientPerformanceSnapshot.Category nodee)
+            {
+                if (nodee == node)
+                    uuid[i] = expanded ? EXPANDED : COLLAPSED;
+                i++;
+            }
+        }
+        return String.join(",", uuid); //$NON-NLS-1$
+    }
+
 }
