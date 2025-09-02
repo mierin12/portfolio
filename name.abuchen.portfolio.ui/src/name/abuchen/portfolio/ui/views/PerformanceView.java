@@ -1122,6 +1122,26 @@ public class PerformanceView extends AbstractHistoricView
         }
     }
 
+    private void setTreeExpandedState(String uuids)
+    {
+        List<ClientPerformanceSnapshot.Category> expanded = new ArrayList<>();
+        var uuid = uuids.split(","); //$NON-NLS-1$
+        int i = 0;
+        for (TreeItem element : calculation.getTree().getItems())
+        {
+            if (element.getData() instanceof ClientPerformanceSnapshot.Category node)
+            {
+                // check legnth
+                if (EXPANDED.equals(uuid[i]))
+                {
+                    expanded.add(node);
+                }
+                i++;
+            }
+        }
+        calculation.setExpandedElements(expanded.toArray());
+    }
+
     private String getTreeExpandedState()
     {
         StringJoiner expansionState = new StringJoiner(","); //$NON-NLS-1$
@@ -1135,35 +1155,16 @@ public class PerformanceView extends AbstractHistoricView
         return expansionState.toString();
     }
 
-    private void setTreeExpandedState(String uuids)
+    private String getUpdatedTreeExpandedState(ClientPerformanceSnapshot.Category updatedNode, boolean expanded)
     {
-        List<ClientPerformanceSnapshot.Category> expandedaa = new ArrayList<>();
-        var uuid = uuids.split(","); //$NON-NLS-1$
+        var uuid = expansionStateDefinition.split(","); //$NON-NLS-1$
         int i = 0;
         for (TreeItem element : calculation.getTree().getItems())
         {
             if (element.getData() instanceof ClientPerformanceSnapshot.Category node)
             {
                 // check legnth
-                if (EXPANDED.equals(uuid[i]))
-                {
-                    expandedaa.add(node);
-                }
-                i++;
-            }
-        }
-        calculation.setExpandedElements(expandedaa.toArray());
-    }
-
-    private String getUpdatedTreeExpandedState(ClientPerformanceSnapshot.Category node, boolean expanded)
-    {
-        var uuid = expansionStateDefinition.split(","); //$NON-NLS-1$
-        int i = 0;
-        for (TreeItem element : calculation.getTree().getItems())
-        {
-            if (element.getData() instanceof ClientPerformanceSnapshot.Category nodee)
-            {
-                if (nodee == node)
+                if (node == updatedNode)
                     uuid[i] = expanded ? EXPANDED : COLLAPSED;
                 i++;
             }
