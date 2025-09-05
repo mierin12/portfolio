@@ -85,9 +85,15 @@ public class ImportCSVHandler
         CSVImportWizard wizard = new CSVImportWizard(client, preferences, new File(fileName));
         ContextInjectionFactory.inject(wizard, context);
         if (account != null)
+        {
             wizard.setTarget(account);
+            wizard.setExtractor("account-transaction"); //$NON-NLS-1$
+        }
         if (portfolio != null)
+        {
             wizard.setTarget(portfolio);
+            wizard.setExtractor("portfolio-transaction"); //$NON-NLS-1$
+        }
 
         if (index != null)
         {
