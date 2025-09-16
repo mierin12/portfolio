@@ -109,19 +109,23 @@ public class AdaptiveHeaderLayout extends Layout
         int viewActualWidth = viewMinWidth + Math.max(0, extraSpace);
 
         // Step 6: Position all components
-        int y = marginHeight + (availableHeight - actionSize.y) / 2;
+        var titleSize = titleLabel.computeSize(SWT.DEFAULT, SWT.DEFAULT, flushCache);
+        var viewSize = viewToolbarWrapper.computeSize(SWT.DEFAULT, SWT.DEFAULT, flushCache);
+        int yTitle = marginHeight + (availableHeight - titleSize.y) / 2;
+        int yAction = marginHeight + (availableHeight - actionSize.y) / 2;
+        int yView = marginHeight + (availableHeight - viewSize.y) / 2;
 
         // title at left
-        titleLabel.setBounds(marginWidth, y, titleWidth, actionSize.y);
+        titleLabel.setBounds(marginWidth, yTitle, titleWidth, titleSize.y);
 
         // Action toolbar at right
         int actionX = bounds.width - marginWidth - actionWidth;
-        actionToolbar.setBounds(actionX, y, actionWidth, actionSize.y);
+        actionToolbar.setBounds(actionX, yAction, actionWidth, actionSize.y);
 
         // View toolbar between title and action toolbar (right-aligned within
         // its space)
         int viewX = actionX - HORIZONTAL_SPACING - viewActualWidth;
-        viewToolbarWrapper.setBounds(viewX, marginHeight, viewActualWidth, availableHeight);
+        viewToolbarWrapper.setBounds(viewX, yView, viewActualWidth, viewSize.y);
 
         // Update the view toolbar wrapper's layout with the actual available
         // width
