@@ -122,17 +122,16 @@ public class AdaptiveHeaderLayout extends Layout
         int actionX = bounds.width - marginWidth - actionWidth;
         actionToolbar.setBounds(actionX, yAction, actionWidth, actionSize.y);
 
-        // View toolbar between title and action toolbar (right-aligned within
-        // its space)
-        int viewX = actionX - HORIZONTAL_SPACING - viewActualWidth;
-        viewToolbarWrapper.setBounds(viewX, yView, viewActualWidth, viewSize.y);
-
         // Update the view toolbar wrapper's layout with the actual available
         // width
         if (viewToolbarWrapper.getLayout() instanceof ToolBarPlusChevronLayout layout)
         {
             layout.setMaxWidth(viewActualWidth);
         }
+        // View toolbar between title and action toolbar (right-aligned within
+        // its space)
+        int viewX = actionX - HORIZONTAL_SPACING - viewActualWidth;
+        viewToolbarWrapper.setBounds(viewX, yView, viewActualWidth, viewSize.y);
     }
 
     private int calculateMinViewToolbarWidth(Composite viewToolbarWrapper)
