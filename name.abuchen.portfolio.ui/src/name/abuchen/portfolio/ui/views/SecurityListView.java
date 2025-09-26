@@ -54,6 +54,7 @@ import name.abuchen.portfolio.ui.util.CommandAction;
 import name.abuchen.portfolio.ui.util.DropDown;
 import name.abuchen.portfolio.ui.util.SimpleAction;
 import name.abuchen.portfolio.ui.util.TableViewerCSVExporter;
+import name.abuchen.portfolio.ui.views.panes.DrawdownChartPane;
 import name.abuchen.portfolio.ui.views.panes.HistoricalPricesDataQualityPane;
 import name.abuchen.portfolio.ui.views.panes.HistoricalPricesPane;
 import name.abuchen.portfolio.ui.views.panes.InformationPanePage;
@@ -566,6 +567,7 @@ public class SecurityListView extends AbstractFinanceView
         pages.add(make(HistoricalPricesPane.class));
         pages.add(make(TransactionsPane.class));
         pages.add(make(TradesPane.class));
+        pages.add(make(DrawdownChartPane.class));
         pages.add(make(SecurityEventsPane.class));
         pages.add(make(HistoricalPricesDataQualityPane.class));
     }

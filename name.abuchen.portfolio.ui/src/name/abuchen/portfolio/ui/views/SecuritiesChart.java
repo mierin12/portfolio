@@ -130,7 +130,7 @@ public class SecuritiesChart
         }
     }
 
-    private static class ChartIntervalOrMessage
+    public static class ChartIntervalOrMessage
     {
         private final String message;
         private final ChartInterval interval;
@@ -1958,12 +1958,12 @@ public class SecuritiesChart
                         : Optional.of(purchasePricePerShare.getAmount() / Values.Quote.divider());
     }
 
-    private static class MessagePainter implements PaintListener, DisposeListener
+    public static class MessagePainter implements PaintListener, DisposeListener
     {
         private String message;
         private Font font;
 
-        private void setMessage(String message)
+        public void setMessage(String message)
         {
             this.message = message;
         }
