@@ -35,6 +35,7 @@ import name.abuchen.portfolio.ui.Messages;
 import name.abuchen.portfolio.ui.util.LogoManager;
 import name.abuchen.portfolio.ui.util.viewers.CopyPasteSupport;
 import name.abuchen.portfolio.ui.views.dataseries.DataSeries.Type;
+import name.abuchen.portfolio.util.TextUtil;
 
 public class DataSeriesSelectionDialog extends Dialog
 {
@@ -80,6 +81,45 @@ public class DataSeriesSelectionDialog extends Dialog
         public boolean hasChildren(Object element)
         {
             return !((Node) element).children.isEmpty();
+        }
+    }
+
+    private static final class TreeLabelProvider extends LabelProvider
+    {
+        private final Client client;
+
+        public TreeLabelProvider(Client client)
+        {
+            this.client = client;
+        }
+
+        @Override
+        public Image getImage(Object element)
+        {
+            Node node = (Node) element;
+
+            if (node.dataSeries == null)
+                return Images.UNASSIGNED_CATEGORY.image();
+
+            if (node.dataSeries.getType() == DataSeries.Type.SECURITY
+                            || node.dataSeries.getType() == DataSeries.Type.SECURITY_BENCHMARK)
+                return LogoManager.instance().getDefaultColumnImage(node.dataSeries.getInstance(),
+                                client.getSettings());
+
+            if (node.dataSeries.getType() == DataSeries.Type.DERIVED_DATA_SERIES
+                            && ((DerivedDataSeries) node.dataSeries.getInstance()).getBaseDataSeries()
+                                            .getType() == DataSeries.Type.SECURITY)
+                return LogoManager.instance().getDefaultColumnImage(
+                                ((DerivedDataSeries) node.dataSeries.getInstance()).getBaseDataSeries().getInstance(),
+                                client.getSettings());
+            else
+                return node.dataSeries.getImage();
+        }
+
+        @Override
+        public String getText(Object element)
+        {
+            return ((Node) element).label;
         }
     }
 
@@ -302,43 +342,30 @@ public class DataSeriesSelectionDialog extends Dialog
         TreeViewerColumn column = new TreeViewerColumn(treeViewer, SWT.None);
         layout.setColumnData(column.getColumn(), new ColumnWeightData(100));
 
-        treeViewer.setLabelProvider(new LabelProvider()
-        {
-            @Override
-            public Image getImage(Object element)
-            {
-                Node node = (Node) element;
+        TreeLabelProvider labelProvider = new TreeLabelProvider(client);
 
-                if (node.dataSeries == null)
-                    return Images.UNASSIGNED_CATEGORY.image();
-
-                if (node.dataSeries.getType() == DataSeries.Type.SECURITY
-                                || node.dataSeries.getType() == DataSeries.Type.SECURITY_BENCHMARK)
-                    return LogoManager.instance().getDefaultColumnImage(node.dataSeries.getInstance(),
-                                    client.getSettings());
-
-                if (node.dataSeries.getType() == DataSeries.Type.DERIVED_DATA_SERIES
-                                && ((DerivedDataSeries) node.dataSeries.getInstance()).getBaseDataSeries()
-                                                .getType() == DataSeries.Type.SECURITY)
-                    return LogoManager.instance()
-                                    .getDefaultColumnImage(
-                                                    ((DerivedDataSeries) node.dataSeries.getInstance())
-                                                                    .getBaseDataSeries().getInstance(),
-                                                    client.getSettings());
-                else
-                    return node.dataSeries.getImage();
-            }
-
-            @Override
-            public String getText(Object element)
-            {
-                return ((Node) element).label;
-            }
-        });
+        treeViewer.setLabelProvider(labelProvider);
         treeViewer.setContentProvider(new NodeContentProvider());
         treeViewer.addFilter(elementFilter);
         treeViewer.setInput(elements);
-        treeViewer.setComparator(new ViewerComparator());
+        treeViewer.setComparator(new ViewerComparator()
+        {
+            @Override
+            public int compare(Viewer viewer, Object o1, Object o2)
+            {
+                String s1 = labelProvider.getText(o1);
+                String s2 = labelProvider.getText(o2);
+
+                if (s1 == null && s2 == null)
+                    return 0;
+                else if (s1 == null)
+                    return -1;
+                else if (s2 == null)
+                    return 1;
+
+                return TextUtil.compare(s1, s2);
+            }
+        });
 
         hookListener();
 
