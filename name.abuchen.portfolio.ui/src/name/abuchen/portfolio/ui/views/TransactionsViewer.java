@@ -424,7 +424,7 @@ public final class TransactionsViewer implements ModificationListener
         support.addColumn(column);
 
         column = new Column("account", Messages.ColumnAccount, SWT.None, 120); //$NON-NLS-1$
-        column.setLabelProvider(new TransactionLabelProvider(t -> null, t -> t.getOwner()) // NOSONAR
+        column.setLabelProvider(new TransactionLabelProvider(t -> null, t -> t.unwrap().getOwner()) // NOSONAR
         {
             @Override
             public String getText(Object element)
