@@ -62,7 +62,7 @@ public class PortfolioClientFilter implements ClientFilter
         else
             throw new IllegalArgumentException("element is null or of wrong type: " + element); //$NON-NLS-1$
     }
-
+    
     public boolean hasElement(Object element)
     {
         if (element instanceof Portfolio portfolio)
@@ -187,8 +187,6 @@ public class PortfolioClientFilter implements ClientFilter
         PortfolioTransaction t = buySell.getPortfolioTransaction();
 
         BuySellEntry copy = new BuySellEntry(readOnlyPortfolio, readOnlyAccount);
-        copy.getPortfolioTransaction().setOriginalTransaction(buySell.getPortfolioTransaction());
-        copy.getAccountTransaction().setOriginalTransaction(buySell.getAccountTransaction());
 
         copy.setDate(t.getDateTime());
         copy.setCurrencyCode(t.getCurrencyCode());
@@ -228,10 +226,8 @@ public class PortfolioClientFilter implements ClientFilter
                     if (!processedDividendTx.contains(t))
                     {
                         pseudoAccount.internalAddTransaction(t);
-                        var removal = new AccountTransaction(t.getDateTime(), t.getCurrencyCode(), t.getAmount(), null,
-                                        AccountTransaction.Type.REMOVAL);
-                        removal.setOriginalTransaction(t);
-                        pseudoAccount.internalAddTransaction(removal);
+                        pseudoAccount.internalAddTransaction(new AccountTransaction(t.getDateTime(),
+                                        t.getCurrencyCode(), t.getAmount(), null, AccountTransaction.Type.REMOVAL));
                         processedDividendTx.add(t);
                     }
                     break;
@@ -240,10 +236,8 @@ public class PortfolioClientFilter implements ClientFilter
                     if (!processedDividendTx.contains(t))
                     {
                         pseudoAccount.internalAddTransaction(t);
-                        var deposit = new AccountTransaction(t.getDateTime(), t.getCurrencyCode(), t.getAmount(), null,
-                                        AccountTransaction.Type.DEPOSIT);
-                        deposit.setOriginalTransaction(t);
-                        pseudoAccount.internalAddTransaction(deposit);
+                        pseudoAccount.internalAddTransaction(new AccountTransaction(t.getDateTime(),
+                                        t.getCurrencyCode(), t.getAmount(), null, AccountTransaction.Type.DEPOSIT));
                         processedDividendTx.add(t);
                     }
                     break;
@@ -324,7 +318,6 @@ public class PortfolioClientFilter implements ClientFilter
     private PortfolioTransaction convertTo(PortfolioTransaction t, PortfolioTransaction.Type type)
     {
         PortfolioTransaction clone = new PortfolioTransaction();
-        clone.setOriginalTransaction(t);
         clone.setType(type);
         clone.setDateTime(t.getDateTime());
         clone.setCurrencyCode(t.getCurrencyCode());
@@ -338,7 +331,6 @@ public class PortfolioClientFilter implements ClientFilter
     private AccountTransaction convertTo(AccountTransaction t, AccountTransaction.Type type)
     {
         AccountTransaction clone = new AccountTransaction();
-        clone.setOriginalTransaction(t);
         clone.setType(type);
         clone.setDateTime(t.getDateTime());
         clone.setCurrencyCode(t.getCurrencyCode());
