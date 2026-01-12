@@ -29,6 +29,7 @@ public class ClientSnapshot
     private PortfolioSnapshot jointPortfolio;
     private Money assets;
     private String snapshotName;
+    private boolean granularityByPortfolio = false;
 
     public static ClientSnapshot create(Client client, CurrencyConverter converter, LocalDate date)
     {
@@ -36,6 +37,12 @@ public class ClientSnapshot
     }
 
     public static ClientSnapshot create(Client client, CurrencyConverter converter, LocalDate date, String snapshotName)
+    {
+        return create(client, converter, date, snapshotName, false);
+    }
+
+    public static ClientSnapshot create(Client client, CurrencyConverter converter, LocalDate date, String snapshotName,
+                    boolean granularityByPortfolio)
     {
         ClientSnapshot snapshot = new ClientSnapshot(converter, date);
 
@@ -46,6 +53,8 @@ public class ClientSnapshot
             snapshot.portfolios.add(PortfolioSnapshot.create(portfolio, converter, date));
 
         snapshot.snapshotName = snapshotName;
+        snapshot.granularityByPortfolio = granularityByPortfolio;
+
         return snapshot;
     }
 
@@ -149,9 +158,16 @@ public class ClientSnapshot
         List<AssetPosition> answer = new ArrayList<>();
 
         Money monetaryAssets = getMonetaryAssets();
-
-        for (SecurityPosition p : getJointPortfolio().getPositions())
-            answer.add(new AssetPosition(p, converter, date, monetaryAssets));
+        if (granularityByPortfolio)
+        {
+            for (PortfolioSnapshot p : portfolios)
+                answer.add(new AssetPosition(new SecurityPosition(p), converter, date, monetaryAssets));
+        }
+        else // Granularity by Security
+        {
+            for (SecurityPosition p : getJointPortfolio().getPositions())
+                answer.add(new AssetPosition(p, converter, date, monetaryAssets));
+        }
 
         for (AccountSnapshot a : accounts)
             answer.add(new AssetPosition(new SecurityPosition(a), converter, date, monetaryAssets));

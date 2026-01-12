@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class Portfolio implements Named, TransactionOwner<PortfolioTransaction>, Attributable
+public class Portfolio implements Named, TransactionOwner<PortfolioTransaction>, InvestmentVehicle, Attributable
 {
     private String uuid;
     private String name;
@@ -75,11 +75,13 @@ public class Portfolio implements Named, TransactionOwner<PortfolioTransaction>,
         this.updatedAt = Instant.now();
     }
 
+    @Override
     public boolean isRetired()
     {
         return isRetired;
     }
 
+    @Override
     public void setRetired(boolean isRetired)
     {
         this.isRetired = isRetired;
@@ -151,5 +153,16 @@ public class Portfolio implements Named, TransactionOwner<PortfolioTransaction>,
     public String toString()
     {
         return name;
+    }
+
+    @Override
+    public void setCurrencyCode(String currencyCode)
+    {
+    }
+
+    @Override
+    public String getCurrencyCode()
+    {
+        return referenceAccount.getCurrencyCode();
     }
 }

@@ -152,6 +152,16 @@ public class PortfolioSnapshot
                         .collect(MoneyCollectors.sum(converter.getTermCurrency()));
     }
 
+    public Money getUnconvertedValue()
+    {
+        var converterInReferenceAccountCurrency = converter.with(portfolio.getCurrencyCode());
+
+        return positions.stream() //
+                        .map(SecurityPosition::calculateValue) //
+                        .map(money -> money.with(converterInReferenceAccountCurrency.at(date))) //
+                        .collect(MoneyCollectors.sum(converterInReferenceAccountCurrency.getTermCurrency()));
+    }
+
     public GroupByTaxonomy groupByTaxonomy(Taxonomy taxonomy)
     {
         return new GroupByTaxonomy(taxonomy, this);

@@ -12,8 +12,10 @@ import jakarta.inject.Inject;
 import org.eclipse.e4.core.di.extensions.Preference;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
+import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -29,6 +31,7 @@ import name.abuchen.portfolio.ui.Messages;
 import name.abuchen.portfolio.ui.UIConstants;
 import name.abuchen.portfolio.ui.editor.AbstractFinanceView;
 import name.abuchen.portfolio.ui.util.ClientFilterDropDown;
+import name.abuchen.portfolio.ui.util.DropDown;
 import name.abuchen.portfolio.ui.util.EmbeddedBrowser;
 import name.abuchen.portfolio.ui.util.SimpleAction;
 import name.abuchen.portfolio.ui.util.TimeMachineDropDown;
@@ -43,12 +46,15 @@ import name.abuchen.portfolio.ui.views.panes.TransactionsPane;
 public class HoldingsPieChartView extends AbstractFinanceView
 {
     private static final String ID_WARNING_TOOL_ITEM = "warning"; //$NON-NLS-1$
+    private static final String GRANULARITY_BY_PORTFOLIO = HoldingsPieChartView.class.getSimpleName()
+                    + "-granularity-by-portfolio"; //$NON-NLS-1$
 
     private CurrencyConverter converter;
     private IPieChart chart;
     private ClientFilterDropDown clientFilter;
     private ClientSnapshot snapshot;
     private TimeMachineDropDown timeMachineDropDown;
+    private boolean granularityByPortfolio = false;
 
     @Inject
     @Preference(UIConstants.Preferences.ENABLE_SWTCHART_PIECHARTS)
@@ -63,11 +69,12 @@ public class HoldingsPieChartView extends AbstractFinanceView
                         HoldingsPieChartView.class.getSimpleName(), filter -> notifyModelUpdated());
 
         timeMachineDropDown = new TimeMachineDropDown(date -> notifyModelUpdated());
+        granularityByPortfolio = getPreferenceStore().getBoolean(GRANULARITY_BY_PORTFOLIO);
 
         Client filteredClient = clientFilter.getSelectedFilter().filter(getClient());
         setToContext(UIConstants.Context.FILTERED_CLIENT, filteredClient);
         snapshot = ClientSnapshot.create(filteredClient, converter, LocalDate.now(),
-                        clientFilter.getClientFilterMenu().getSelectedItem().getLabel());
+                        clientFilter.getClientFilterMenu().getSelectedItem().getLabel(), granularityByPortfolio);
     }
 
     @Override
@@ -87,7 +94,7 @@ public class HoldingsPieChartView extends AbstractFinanceView
         var snapshotDateLabel = snapshotDate.map(date -> " | " + Values.Date.format(date)) //$NON-NLS-1$
                         .orElse(""); //$NON-NLS-1$
         snapshot = ClientSnapshot.create(filteredClient, converter, snapshotDate.orElse(LocalDate.now()),
-                        clientFilter.getClientFilterMenu().getSelectedItem().getLabel());
+                        clientFilter.getClientFilterMenu().getSelectedItem().getLabel(), granularityByPortfolio);
 
         chart.refresh(snapshot);
 
@@ -102,6 +109,38 @@ public class HoldingsPieChartView extends AbstractFinanceView
     {
         toolBar.add(timeMachineDropDown);
         toolBar.add(clientFilter);
+        toolBar.add(new DropDown(Messages.LabelLevelToIncludeInPieChart, Images.CONFIG, SWT.NONE,
+                        this::configMenuAboutToShow));
+    }
+
+    @Override
+    public void dispose()
+    {
+        getPreferenceStore().setValue(GRANULARITY_BY_PORTFOLIO, granularityByPortfolio);
+        super.dispose();
+    }
+
+    public void configMenuAboutToShow(IMenuManager manager)
+    {
+        var action = new SimpleAction(Messages.LabelIncludeSecuritiesInPieChart, a -> {
+            if (granularityByPortfolio)
+            {
+                granularityByPortfolio = false;
+                notifyModelUpdated();
+            }
+        });
+        action.setChecked(!granularityByPortfolio);
+        manager.add(action);
+
+        action = new SimpleAction(Messages.LabelIncludePortfoliosInPieChart, a -> {
+            if (!granularityByPortfolio)
+            {
+                granularityByPortfolio = true;
+                notifyModelUpdated();
+            }
+        });
+        action.setChecked(granularityByPortfolio);
+        manager.add(action);
     }
 
     @Override

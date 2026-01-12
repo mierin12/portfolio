@@ -733,6 +733,8 @@ public class Messages extends NLS
     public static String LabelHistoricalReturnsAndVolatiltity;
     public static String LabelImportNotesFromSource;
     public static String LabelIncludeSecuritiesInPieChart;
+    public static String LabelIncludePortfoliosInPieChart;
+    public static String LabelLevelToIncludeInPieChart;
     public static String LabelIncludeUnassignedCategoryInCharts;
     public static String LabelInfo;
     public static String LabelInProgress;

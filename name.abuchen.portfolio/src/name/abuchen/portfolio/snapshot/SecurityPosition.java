@@ -46,6 +46,19 @@ public class SecurityPosition
         this.transactions = new ArrayList<>();
     }
 
+    public SecurityPosition(PortfolioSnapshot snapshot)
+    {
+        Objects.requireNonNull(snapshot);
+        Objects.requireNonNull(snapshot.getPortfolio());
+
+        this.investment = snapshot.getPortfolio();
+        this.converter = snapshot.getCurrencyConverter().with(investment.getCurrencyCode());
+        this.price = new SecurityPrice(snapshot.getTime(),
+                        snapshot.getUnconvertedValue().getAmount() * Values.Quote.factorToMoney());
+        this.shares = Values.Share.factor();
+        this.transactions = new ArrayList<>();
+    }
+
     public SecurityPosition(Security security, CurrencyConverter converter, SecurityPrice price,
                     List<PortfolioTransaction> transactions)
     {
