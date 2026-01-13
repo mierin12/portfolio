@@ -4,6 +4,7 @@ import static name.abuchen.portfolio.util.CollectorsUtil.toMutableList;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -70,11 +71,13 @@ import name.abuchen.portfolio.money.Values;
 import name.abuchen.portfolio.snapshot.AssetCategory;
 import name.abuchen.portfolio.snapshot.AssetPosition;
 import name.abuchen.portfolio.snapshot.ClientSnapshot;
+import name.abuchen.portfolio.snapshot.GroupByPortfolio;
 import name.abuchen.portfolio.snapshot.GroupByTaxonomy;
 import name.abuchen.portfolio.snapshot.PerformanceIndex;
 import name.abuchen.portfolio.snapshot.ReportingPeriod;
 import name.abuchen.portfolio.snapshot.SecurityPosition;
 import name.abuchen.portfolio.snapshot.filter.ClientFilter;
+import name.abuchen.portfolio.snapshot.filter.PortfolioClientFilter;
 import name.abuchen.portfolio.snapshot.filter.ReadOnlyAccount;
 import name.abuchen.portfolio.snapshot.filter.ReadOnlyPortfolio;
 import name.abuchen.portfolio.snapshot.security.LazySecurityPerformanceRecord;
@@ -124,6 +127,9 @@ import name.abuchen.portfolio.util.Interval;
 public class StatementOfAssetsViewer
 {
     private static final String PREFERENCE_NONE = "@none"; //$NON-NLS-1$
+    private static final String PREFERENCE_TAXONOMY = StatementOfAssetsViewer.class.getSimpleName(); // $NON-NLS-1$
+    private static final String PREFERENCE_PORTFOLIO = StatementOfAssetsViewer.class.getSimpleName()
+                    + "-groupByPortfolio"; //$NON-NLS-1$
 
     public static final class Model
     {
@@ -140,6 +146,8 @@ public class StatementOfAssetsViewer
         private ClientSnapshot clientSnapshot;
         private List<Element> elements = new ArrayList<>();
         private GroupByTaxonomy groupByTaxonomy;
+        private GroupByPortfolio groupByPortfolio;
+        private boolean isGroupByPortfolio;
 
         private final Interval globalInterval;
         private Set<CacheKey> calculated = new HashSet<>();
@@ -149,6 +157,12 @@ public class StatementOfAssetsViewer
 
         public Model(IPreferenceStore preferences, Client client, ClientFilter filter, CurrencyConverter converter,
                         LocalDate date, Taxonomy taxonomy)
+        {
+            this(preferences, client, filter, converter, date, taxonomy, false);
+        }
+
+        public Model(IPreferenceStore preferences, Client client, ClientFilter filter, CurrencyConverter converter,
+                        LocalDate date, Taxonomy taxonomy, boolean isGroupByPortfolio)
         {
             this.preferences = preferences;
 
@@ -162,12 +176,20 @@ public class StatementOfAssetsViewer
 
             this.clientSnapshot = ClientSnapshot.create(filteredClient, converter, date);
 
-            this.groupByTaxonomy = clientSnapshot.groupByTaxonomy(taxonomy);
-
             this.hideTotalsAtTheTop = preferences.getBoolean(TOP);
             this.hideTotalsAtTheBottom = preferences.getBoolean(BOTTOM);
 
-            this.elements.addAll(flatten(groupByTaxonomy));
+            this.isGroupByPortfolio = isGroupByPortfolio;
+            if (isGroupByPortfolio)
+            {
+                this.groupByPortfolio = clientSnapshot.groupByPortfolio();
+                this.elements.addAll(flatten(groupByPortfolio));
+            }
+            else
+            {
+                this.groupByTaxonomy = clientSnapshot.groupByTaxonomy(taxonomy);
+                this.elements.addAll(flatten(groupByTaxonomy));
+            }
         }
 
         public List<Element> getElements()
@@ -254,6 +276,43 @@ public class StatementOfAssetsViewer
             return answer;
         }
 
+        private final List<Element> flatten(GroupByPortfolio groupByPortfolio)
+        {
+            // when flattening, assign sortOrder to keep the tree structure for
+            // sorting (only positions within a category are sorted)
+            int sortOrder = 1;
+            List<Element> answer = new ArrayList<>();
+
+            // totals elements
+            Element totalTop = new Element(groupByPortfolio, 0);
+            Element totalBottom = new Element(groupByPortfolio, Integer.MAX_VALUE);
+
+            answer.add(totalTop);
+
+            for (AssetCategory cat : groupByPortfolio.asList())
+            {
+                Element portfolioCategory = new Element(groupByPortfolio, cat, sortOrder);
+                var hideCategory = portfolioCategory.getValuation().getAmount() == 0;
+                if (!hideCategory)
+                    answer.add(portfolioCategory);
+                totalTop.addChild(portfolioCategory);
+                totalBottom.addChild(portfolioCategory);
+                sortOrder++;
+
+                for (AssetPosition p : cat.getPositions())
+                {
+                    Element child = new Element(groupByPortfolio, p, sortOrder);
+                    answer.add(child);
+                    portfolioCategory.addChild(child);
+                }
+                sortOrder++;
+            }
+
+            answer.add(totalBottom);
+
+            return answer;
+        }
+
         /* package */ final void calculatePerformanceAndInjectIntoElements(String currencyCode, Interval interval)
         {
             CacheKey key = new CacheKey(currencyCode, interval);
@@ -262,6 +321,22 @@ public class StatementOfAssetsViewer
             if (calculated.contains(key))
                 return;
 
+            if (isGroupByPortfolio)
+                calculatePerformanceForPortfolio(currencyCode, interval);
+            else
+                calculatePerformanceForTaxonomy(currencyCode, interval);
+
+            // create (lazily!) the performance index for the total lines
+            var index = new LazyValue<PerformanceIndex>(() -> PerformanceIndex.forClient(filteredClient,
+                            converter.with(currencyCode), interval, new ArrayList<>()));
+            elements.stream().filter(Element::isTotal)
+                            .forEach(e -> e.setPerformanceForCategoryTotals(currencyCode, interval, index));
+
+            calculated.add(key);
+        }
+
+        final void calculatePerformanceForTaxonomy(String currencyCode, Interval interval)
+        {
             // performance for securities
             var snapshot = LazySecurityPerformanceSnapshot.create(filteredClient, converter.with(currencyCode),
                             interval);
@@ -273,9 +348,7 @@ public class StatementOfAssetsViewer
                             .forEach(e -> e.setPerformance(currencyCode, interval, map.get(e.getSecurity())));
 
             // create (lazily!) the performance index for categories
-
-            elements.stream() //
-                            .filter(Element::isCategory) //
+            elements.stream().filter(Element::isClassificationCategory) //
                             .filter(e -> !Objects.equals(Classification.UNASSIGNED_ID,
                                             e.getCategory().getClassification().getId()))
                             .forEach(e -> {
@@ -284,14 +357,44 @@ public class StatementOfAssetsViewer
                                                 e.getCategory().getClassification(), interval, new ArrayList<>()));
                                 e.setPerformanceForCategoryTotals(currencyCode, interval, index);
                             });
+        }
 
-            // create (lazily!) the performance index for the total lines
-            var index = new LazyValue<PerformanceIndex>(() -> PerformanceIndex.forClient(filteredClient,
-                            converter.with(currencyCode), interval, new ArrayList<>()));
-            elements.stream().filter(Element::isGroupByTaxonomy)
-                            .forEach(e -> e.setPerformanceForCategoryTotals(currencyCode, interval, index));
+        final void calculatePerformanceForPortfolio(String currencyCode, Interval interval)
+        {
+            // performance for securities
+            elements.stream().filter(Element::isPortfolioCategory) //
+                            .forEach(e -> {
+                                var portfolioFilteredClient = new PortfolioClientFilter(e.getCategory().getPortfolio())
+                                                .filter(filteredClient);
+                                var securityInPortfolioSnapshot = LazySecurityPerformanceSnapshot.create(
+                                                portfolioFilteredClient,
+                                                converter.with(currencyCode), interval);
+                                Map<Security, LazySecurityPerformanceRecord> map = securityInPortfolioSnapshot
+                                                .getRecords()
+                                                .stream()
+                                                .collect(Collectors.toMap(LazySecurityPerformanceRecord::getSecurity,
+                                                                r -> r));
+                                e.getChildren().forEach(pos -> pos.setPerformance(currencyCode, interval,
+                                                map.get(pos.getSecurity())));
+                            });
 
-            calculated.add(key);
+            // create (lazily!) the performance index for categories
+            elements.stream().filter(Element::isPortfolioCategory) //
+                            .forEach(e -> {
+                                var index = new LazyValue<PerformanceIndex>(() -> PerformanceIndex.forPortfolio(
+                                                filteredClient, converter.with(currencyCode),
+                                                e.getCategory().getPortfolio(), interval, new ArrayList<>()));
+                                e.setPerformanceForCategoryTotals(currencyCode, interval, index);
+                            });
+
+            elements.stream().filter(Element::isAccountsCategory).forEach(e -> {
+                var pseudoClient = new PortfolioClientFilter(Collections.emptyList(),
+                                e.getAccounts()).filter(filteredClient);
+                var index = new LazyValue<PerformanceIndex>(
+                                () -> PerformanceIndex.forClient(pseudoClient, converter.with(currencyCode), interval,
+                                                new ArrayList<>()));
+                e.setPerformanceForCategoryTotals(currencyCode, interval, index);
+            });
         }
     }
 
@@ -317,6 +420,7 @@ public class StatementOfAssetsViewer
     private final Client client;
     private Taxonomy taxonomy;
     private Model model;
+    private boolean isGroupByPortfolio;
 
     @Inject
     public StatementOfAssetsViewer(AbstractFinanceView owner, Client client)
@@ -347,7 +451,9 @@ public class StatementOfAssetsViewer
     @PostConstruct
     private void loadTaxonomy() // NOSONAR
     {
-        String taxonomyId = preference.getString(this.getClass().getSimpleName());
+        this.isGroupByPortfolio = preference.getBoolean(PREFERENCE_PORTFOLIO);
+
+        String taxonomyId = preference.getString(PREFERENCE_TAXONOMY);
 
         if (PREFERENCE_NONE.equals(taxonomyId))
             return;
@@ -413,17 +519,19 @@ public class StatementOfAssetsViewer
             public String getText(Object e)
             {
                 Element el = (Element) e;
-                if (((Element) e).isGroupByTaxonomy())
+                if (((Element) e).isTotal())
                     return Messages.ColumnSum;
-                if (el.isCategory())
+                if (el.isClassificationCategory())
                     return super.getText(el) + " (" + el.getChildren().count() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+                if (el.isAccountsCategory())
+                    return Messages.LabelAccounts;
                 return super.getText(e);
             }
 
             @Override
             public Font getFont(Object e)
             {
-                return ((Element) e).isGroupByTaxonomy() || ((Element) e).isCategory() ? boldFont : null;
+                return ((Element) e).isTotal() || ((Element) e).isCategory() ? boldFont : null;
             }
 
             @Override
@@ -439,7 +547,7 @@ public class StatementOfAssetsViewer
             @Override
             public boolean canEdit(Object element)
             {
-                boolean isCategory = ((Element) element).isCategory();
+                boolean isCategory = ((Element) element).isClassificationCategory();
                 boolean isUnassignedCategory = isCategory && Classification.UNASSIGNED_ID
                                 .equals(((Element) element).getCategory().getClassification().getId());
 
@@ -516,7 +624,7 @@ public class StatementOfAssetsViewer
             @Override
             public Font getFont(Object e)
             {
-                return ((Element) e).isGroupByTaxonomy() || ((Element) e).isCategory() ? boldFont : null;
+                return ((Element) e).isTotal() || ((Element) e).isCategory() ? boldFont : null;
             }
         });
         column.setSorter(ColumnViewerSorter.create(Element.class, "valuation").wrap(ElementComparator::new)); //$NON-NLS-1$
@@ -529,7 +637,7 @@ public class StatementOfAssetsViewer
             public String getText(Object e)
             {
                 Element element = (Element) e;
-                if (element.isGroupByTaxonomy())
+                if (element.isTotal())
                     return Values.Percent.format(1d);
                 if (element.isCategory())
                     return Values.Percent.format(element.getCategory().getShare());
@@ -540,7 +648,7 @@ public class StatementOfAssetsViewer
             @Override
             public Font getFont(Object e)
             {
-                return ((Element) e).isGroupByTaxonomy() || ((Element) e).isCategory() ? boldFont : null;
+                return ((Element) e).isTotal() || ((Element) e).isCategory() ? boldFont : null;
             }
         });
         column.setSorter(ColumnViewerSorter.create(Element.class, "valuation").wrap(ElementComparator::new)); //$NON-NLS-1$
@@ -1112,24 +1220,6 @@ public class StatementOfAssetsViewer
 
     public void menuAboutToShow(IMenuManager manager)
     {
-        manager.add(new LabelOnly(Messages.LabelTaxonomies));
-
-        var noneAction = new SimpleAction(Messages.LabelUseNoTaxonomy, a -> {
-            taxonomy = null;
-            setInput(model.clientFilter, model.getDate(), model.getCurrencyConverter());
-        });
-        noneAction.setChecked(taxonomy == null);
-        manager.add(noneAction);
-
-        for (final Taxonomy t : client.getTaxonomies())
-        {
-            manager.add(new MenuContribution(t.getName(), () -> {
-                taxonomy = t;
-                setInput(model.clientFilter, model.getDate(), model.getCurrencyConverter());
-            }, t.equals(taxonomy)));
-        }
-
-        manager.add(new Separator());
         manager.add(new LabelOnly(Messages.LabelColumns));
         support.menuAboutToShow(manager);
 
@@ -1156,12 +1246,43 @@ public class StatementOfAssetsViewer
 
     }
 
+    public void taxonomyMenuAboutToShow(IMenuManager manager)
+    {
+        var orderByPortfolio = new SimpleAction(Messages.ClientEditorLabelClientMasterData, a -> {
+            isGroupByPortfolio = true;
+            setInput(model.clientFilter, model.getDate(), model.getCurrencyConverter());
+        });
+        orderByPortfolio.setChecked(isGroupByPortfolio);
+        manager.add(orderByPortfolio);
+
+        manager.add(new Separator());
+
+        manager.add(new LabelOnly(Messages.LabelTaxonomies));
+
+        var noneAction = new SimpleAction(Messages.LabelUseNoTaxonomy, a -> {
+            taxonomy = null;
+            isGroupByPortfolio = false;
+            setInput(model.clientFilter, model.getDate(), model.getCurrencyConverter());
+        });
+        noneAction.setChecked(taxonomy == null && !isGroupByPortfolio);
+        manager.add(noneAction);
+
+        for (final Taxonomy t : client.getTaxonomies())
+        {
+            manager.add(new MenuContribution(t.getName(), () -> {
+                taxonomy = t;
+                isGroupByPortfolio = false;
+                setInput(model.clientFilter, model.getDate(), model.getCurrencyConverter());
+            }, t.equals(taxonomy) && !isGroupByPortfolio));
+        }
+    }
+
     public void setInput(ClientFilter filter, LocalDate date, CurrencyConverter converter)
     {
         assets.getTable().setRedraw(false);
         try
         {
-            this.model = new Model(preference, client, filter, converter, date, taxonomy);
+            this.model = new Model(preference, client, filter, converter, date, taxonomy, isGroupByPortfolio);
 
             support.invalidateCache();
             assets.setInput(model.getElements());
@@ -1192,12 +1313,8 @@ public class StatementOfAssetsViewer
 
     private void widgetDisposed()
     {
-        var preferenceKey = this.getClass().getSimpleName();
-
-        if (taxonomy != null)
-            preference.setValue(preferenceKey, taxonomy.getId());
-        else
-            preference.setValue(preferenceKey, PREFERENCE_NONE);
+        preference.setValue(PREFERENCE_PORTFOLIO, isGroupByPortfolio);
+        preference.setValue(PREFERENCE_TAXONOMY, taxonomy != null ? taxonomy.getId() : PREFERENCE_NONE);
 
         if (contextMenu != null)
             contextMenu.dispose();
@@ -1213,6 +1330,7 @@ public class StatementOfAssetsViewer
          */
         private final int sortOrder;
 
+        private GroupByPortfolio groupByPortfolio;
         private GroupByTaxonomy groupByTaxonomy;
         private AssetCategory category;
         private AssetPosition position;
@@ -1229,6 +1347,13 @@ public class StatementOfAssetsViewer
             this.sortOrder = sortOrder;
         }
 
+        private Element(GroupByPortfolio groupByPortfolio, AssetCategory category, int sortOrder)
+        {
+            this.groupByPortfolio = groupByPortfolio;
+            this.category = category;
+            this.sortOrder = sortOrder;
+        }
+
         private Element(GroupByTaxonomy groupByTaxonomy, AssetPosition position, int sortOrder)
         {
             this.groupByTaxonomy = groupByTaxonomy;
@@ -1236,9 +1361,22 @@ public class StatementOfAssetsViewer
             this.sortOrder = sortOrder;
         }
 
+        private Element(GroupByPortfolio groupByPortfolio, AssetPosition position, int sortOrder)
+        {
+            this.groupByPortfolio = groupByPortfolio;
+            this.position = position;
+            this.sortOrder = sortOrder;
+        }
+
         private Element(GroupByTaxonomy groupByTaxonomy, int sortOrder)
         {
             this.groupByTaxonomy = groupByTaxonomy;
+            this.sortOrder = sortOrder;
+        }
+
+        private Element(GroupByPortfolio groupByPortfolio, int sortOrder)
+        {
+            this.groupByPortfolio = groupByPortfolio;
             this.sortOrder = sortOrder;
         }
 
@@ -1250,8 +1388,12 @@ public class StatementOfAssetsViewer
         {
             if (position != null)
                 return position.getInvestmentVehicle();
-            else if (category != null)
+            else if (isClassificationCategory())
                 return category.getClassification();
+            else if (isPortfolioCategory())
+                return category.getPortfolio();
+            else if (groupByPortfolio != null)
+                return groupByPortfolio;
             else
                 return groupByTaxonomy;
         }
@@ -1297,6 +1439,11 @@ public class StatementOfAssetsViewer
             return performanceForCategoryTotals.get(new CacheKey(currencyCode, period)).get();
         }
 
+        public boolean isTotal()
+        {
+            return (groupByTaxonomy != null || groupByPortfolio != null) && category == null && position == null;
+        }
+
         public boolean isGroupByTaxonomy()
         {
             return groupByTaxonomy != null && category == null && position == null;
@@ -1305,6 +1452,21 @@ public class StatementOfAssetsViewer
         public boolean isCategory()
         {
             return category != null;
+        }
+
+        public boolean isPortfolioCategory()
+        {
+            return category != null && category.getPortfolio() != null;
+        }
+
+        public boolean isClassificationCategory()
+        {
+            return category != null && category.getClassification() != null;
+        }
+
+        public boolean isAccountsCategory()
+        {
+            return category != null && category.getClassification() == null && category.getPortfolio() == null;
         }
 
         public boolean isPosition()
@@ -1347,12 +1509,22 @@ public class StatementOfAssetsViewer
             return isAccount() ? (Account) position.getInvestmentVehicle() : null;
         }
 
+        public List<Account> getAccounts()
+        {
+            return isAccountsCategory()
+                            ? category.getPositions().stream().map(r -> (Account) r.getInvestmentVehicle())
+                                            .collect(Collectors.toList())
+                            : null;
+        }
+
         public Money getValuation()
         {
             if (position != null)
                 return position.getValuation();
             else if (category != null)
                 return category.getValuation();
+            else if (groupByPortfolio != null)
+                return groupByPortfolio.getValuation();
             else
                 return groupByTaxonomy.getValuation();
         }
@@ -1370,8 +1542,10 @@ public class StatementOfAssetsViewer
                     return type.cast(getSecurity());
                 else if (isAccount())
                     return type.cast(getAccount());
-                else if (isCategory())
+                else if (isClassificationCategory())
                     return type.cast(getCategory().getClassification());
+                else if (isPortfolioCategory())
+                    return type.cast(getCategory().getPortfolio());
                 else
                     return null;
             }
@@ -1381,6 +1555,8 @@ public class StatementOfAssetsViewer
                     return type.cast(getSecurity());
                 else if (isAccount())
                     return type.cast(getAccount());
+                else if (isPortfolioCategory())
+                    return type.cast(getCategory().getPortfolio());
                 else
                     return null;
             }
@@ -1460,6 +1636,10 @@ public class StatementOfAssetsViewer
                 if (!(value instanceof Money))
                     return value;
 
+                // if grouped by portfolio, no split
+                if (element.getGroupByTaxonomy() == null)
+                    return value;
+
                 // check if asset has been split across multiple categories
 
                 // problem: we cannot use the "shares held" of the current
@@ -1487,7 +1667,7 @@ public class StatementOfAssetsViewer
                     return value;
                 }
             }
-            else if (element.isCategory())
+            else if (element.isClassificationCategory())
             {
                 if (collector != null)
                     return collectValue(element.getChildren(), currencyCode, interval);
@@ -1497,7 +1677,16 @@ public class StatementOfAssetsViewer
 
                 return null;
             }
-            else if (element.isGroupByTaxonomy())
+            else if (element.isPortfolioCategory() || element.isAccountsCategory())
+            {
+                if (collector != null)
+                    return collectValue(element.getChildren(), currencyCode, interval);
+                else if (valueProviderTotal != null)
+                    return valueProviderTotal.apply(element.getPerformanceForCategoryTotals(currencyCode, interval));
+
+                return null;
+            }
+            else if (element.isTotal())
             {
                 if (collector != null)
                     return collectValue(element.getChildren().flatMap(Element::getChildren), currencyCode, interval);
@@ -1657,7 +1846,7 @@ public class StatementOfAssetsViewer
         @Override
         public Font getFont(Object e, ReportingPeriod option)
         {
-            return ((Element) e).isGroupByTaxonomy() || ((Element) e).isCategory() ? boldFont : null;
+            return ((Element) e).isTotal() || ((Element) e).isCategory() ? boldFont : null;
         }
 
         @SuppressWarnings("unchecked")

@@ -400,13 +400,7 @@ public final class TradeDetailsView extends AbstractFinanceView
 
         addFilterButton(toolBarManager);
 
-        toolBarManager.add(new DropDown(Messages.MenuExportData, Images.EXPORT, SWT.NONE,
-                        manager -> manager.add(new SimpleAction(Messages.LabelTrades + " (CSV)", //$NON-NLS-1$
-                                        a -> new TableViewerCSVExporter(table.getTableViewer())
-                                                        .export(Messages.LabelTrades + ".csv"))) //$NON-NLS-1$
-        ));
-
-        toolBarManager.add(new DropDown(Messages.MenuShowHideColumns, Images.CONFIG, SWT.NONE, manager -> {
+        toolBarManager.add(new DropDown("Organize by taxonomy", Images.VIEW_TABLE, SWT.NONE, manager -> {
 
             manager.add(new LabelOnly(Messages.LabelTaxonomies));
 
@@ -426,8 +420,16 @@ public final class TradeDetailsView extends AbstractFinanceView
                     update();
                 }, t.equals(taxonomy)));
             }
+        }));
 
-            manager.add(new Separator());
+        toolBarManager.add(new DropDown(Messages.MenuExportData, Images.EXPORT, SWT.NONE,
+                        manager -> manager.add(new SimpleAction(Messages.LabelTrades + " (CSV)", //$NON-NLS-1$
+                                        a -> new TableViewerCSVExporter(table.getTableViewer())
+                                                        .export(Messages.LabelTrades + ".csv"))) //$NON-NLS-1$
+        ));
+
+        toolBarManager.add(new DropDown(Messages.MenuShowHideColumns, Images.CONFIG, SWT.NONE, manager -> {
+
             manager.add(new LabelOnly(Messages.LabelColumns));
 
             table.getShowHideColumnHelper().menuAboutToShow(manager);

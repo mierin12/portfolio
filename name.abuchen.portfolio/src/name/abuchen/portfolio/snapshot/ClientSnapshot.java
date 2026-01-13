@@ -158,4 +158,10 @@ public class ClientSnapshot
 
         return answer.stream();
     }
+
+    public GroupByPortfolio groupByPortfolio()
+    {
+        return new GroupByPortfolio(this);
+    }
+
 }
