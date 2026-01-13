@@ -1057,6 +1057,7 @@ public class Messages extends NLS
     public static String MenuSaveColumns;
     public static String MenuSelectBenchmarkDataSeries;
     public static String MenuSelectDataSeries;
+    public static String MenuSelectPortolioOrTaxonomy;
     public static String MenuSetCurrentViewAsInitialView;
     public static String MenuSettingsNew;
     public static String MenuShow;

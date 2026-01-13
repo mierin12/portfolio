@@ -118,6 +118,9 @@ public class StatementOfAssetsView extends AbstractFinanceView
         timeMachineDropDown = new TimeMachineDropDown(date -> notifyModelUpdated());
         toolBar.add(timeMachineDropDown);
 
+        toolBar.add(new DropDown(Messages.MenuSelectPortolioOrTaxonomy, Images.VIEW_TABLE, SWT.NONE,
+                        manager -> assetViewer.taxonomyMenuAboutToShow(manager)));
+
         this.clientFilter = new ClientFilterDropDown(getClient(), getPreferenceStore(),
                         StatementOfAssetsView.class.getSimpleName(), filter -> notifyModelUpdated());
         toolBar.add(clientFilter);
