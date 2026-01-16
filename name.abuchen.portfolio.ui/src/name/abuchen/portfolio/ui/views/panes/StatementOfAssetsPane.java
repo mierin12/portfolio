@@ -69,6 +69,9 @@ public class StatementOfAssetsPane implements InformationPanePage
     @Override
     public void addButtons(ToolBarManager toolBar)
     {
+        toolBar.add(new DropDown(Messages.MenuSelectPortolioOrTaxonomy, Images.VIEW_TABLE, SWT.NONE,
+                        manager -> viewer.taxonomyMenuAboutToShow(manager)));
+
         toolBar.add(new SimpleAction(Messages.MenuExportData, Images.EXPORT,
                         a -> new TableViewerCSVExporter(viewer.getTableViewer()).export(getLabel(),
                                         genericAccount)));
