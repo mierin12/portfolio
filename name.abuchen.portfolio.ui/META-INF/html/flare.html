@@ -22,6 +22,7 @@ pp.onResizeEnd(function() {
 
   svg.attr("transform", "translate(" + width / 2 + "," + (height / 2) + ")");
 
+  //flare.click(node);
   y.range([0, radius]);
   flare.zoomTo(node);
 });
@@ -87,9 +88,9 @@ var flare = {
     }
 
     // Bind data using uuid as key
-    this.path = svg.selectAll("path")
-      .data(nodes, function(d) { return d.uuid; });
-
+	this.path = svg.datum(root).selectAll("path")
+	  .data(partition.value(function(d) { return d.value; }).nodes)
+	  
     // Exit: remove old paths first (before enter, to avoid conflicts)
     if (this.isInitialized) {
       this.path.exit().transition().duration(300).style("opacity", 0).remove();
@@ -107,7 +108,7 @@ var flare = {
       .each(stash);
 
     // Rebind data to get a fresh selection with all elements properly bound
-    this.path = svg.selectAll("path").data(nodes, function(d) { return d.uuid; });
+    this.path = svg.selectAll("path").data(partition.value(function(d) { return d.value; }).nodes);
 
     // Set fill immediately on all paths (no transition for colors)
     this.path.style("fill", function(d) { return d.color; });
@@ -123,9 +124,10 @@ var flare = {
     }
 
     // Handle text labels
-    this.text = svg.selectAll("text")
-      .data(nodes, function(d) { return d.uuid; });
-
+	this.text = svg.datum(root)
+	  .selectAll("text")
+	  .data(partition.value(function(d) { return d.value; }).nodes)
+	  
     // Exit: remove old text elements first
     if (this.isInitialized) {
       this.text.exit().transition().duration(300).style("opacity", 0).remove();
@@ -144,9 +146,10 @@ var flare = {
     textEnter.append("tspan")
       .attr("x", 0);
 
-    // Rebind data to get a fresh selection with all elements properly bound
-    this.text = svg.selectAll("text").data(nodes, function(d) { return d.uuid; });
-
+	 // Rebind data to get a fresh selection with all elements properly bound
+	  this.text = svg.selectAll("text")
+	    .data(partition.value(function(d) { return d.value; }).nodes)
+	  
     // Set fill immediately on all text elements (no transition for colors)
     this.text
       .style("fill", function(d) {
@@ -173,7 +176,7 @@ var flare = {
     }
 
     this.text.select("tspan")
-      .attr("visibility", function(d) { return isBigEnough(d) && isParentOf(node, d) ? null : "hidden"; })
+      .attr("visibility", function(d) { return isBigEnough(d) ? null : "hidden"; })
       .text(cropped);
 
     // Apply current zoom state if we have a drilled-into node
@@ -207,7 +210,7 @@ var flare = {
       });
 
     this.text.select("tspan")
-      .attr("visibility", function(e) { return isBigEnough(e) && isParentOf(d, e) ? null : "hidden"; })
+      .attr("visibility", function(e) { return isBigEnough(e) ? null : "hidden"; })
       .text(cropped);
   },
 
@@ -247,7 +250,7 @@ var flare = {
       .each("end", function(e) {
           d3.select(this)
             .style("visibility", isBigEnough(e) && isParentOf(d, e) ? null : "hidden")
-            .select("tspan").text(cropped(e));
+            .text(cropped(e));
       });
   },
 
