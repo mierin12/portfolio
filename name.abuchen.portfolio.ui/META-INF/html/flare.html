@@ -58,7 +58,7 @@ var arc = d3.svg.arc()
 
 // Keep track of the node that is currently being displayed as the root.
 var node;
-var nodeUuid = null;
+//var nodeUuid = null;
 var root;
 
 var flare = {
@@ -68,27 +68,13 @@ var flare = {
   update: function(content) {
     var that = this;
     root = JSON.parse(content);
-
+	node = root;
+	
+	this.path = svg.datum(root).selectAll("path")
+	  .data(partition.value(function(d) { return d.value; }).nodes)
+	  
     // Compute partition layout
-    var nodes = partition.nodes(root);
-
-    // If we have a drilled-into node, try to find it in the new data
-    if (nodeUuid !== null) {
-      var foundNode = findNodeByUuid(root, nodeUuid);
-      if (foundNode) {
-        node = foundNode;
-      } else {
-        // Node no longer exists, reset to root
-        node = root;
-        nodeUuid = null;
-      }
-    } else {
-      node = root;
-    }
-
-    // Bind data using uuid as key
-    this.path = svg.selectAll("path")
-      .data(nodes, function(d) { return d.uuid; });
+    //var nodes = partition.nodes(root);
 
     // Exit: remove old paths first (before enter, to avoid conflicts)
     if (this.isInitialized) {
@@ -106,9 +92,15 @@ var flare = {
       .on("mouseout", this.mouseout)
       .each(stash);
 
+	 // Handle text labels
+	 this.text = svg.datum(root)
+	 	.selectAll("text")
+	 	.data(partition.value(function(d) { return d.value; }).nodes)
+	      
     // Rebind data to get a fresh selection with all elements properly bound
-    this.path = svg.selectAll("path").data(nodes, function(d) { return d.uuid; });
-
+	this.path = svg.datum(root).selectAll("path")
+	  .data(partition.value(function(d) { return d.value; }).nodes)
+	  
     // Set fill immediately on all paths (no transition for colors)
     this.path.style("fill", function(d) { return d.color; });
 
@@ -121,10 +113,6 @@ var flare = {
         .attr("d", arc)
         .each(stash);
     }
-
-    // Handle text labels
-    this.text = svg.selectAll("text")
-      .data(nodes, function(d) { return d.uuid; });
 
     // Exit: remove old text elements first
     if (this.isInitialized) {
@@ -145,7 +133,9 @@ var flare = {
       .attr("x", 0);
 
     // Rebind data to get a fresh selection with all elements properly bound
-    this.text = svg.selectAll("text").data(nodes, function(d) { return d.uuid; });
+	this.text = svg.datum(root)
+	  .selectAll("text")
+	  .data(partition.value(function(d) { return d.value; }).nodes)
 
     // Set fill immediately on all text elements (no transition for colors)
     this.text
@@ -216,7 +206,6 @@ var flare = {
       return;
 
     node = d;
-    nodeUuid = d.uuid;
 
     if (typeof onItemSelected === 'function') {
       onItemSelected(d.uuid);
@@ -278,21 +267,6 @@ var flare = {
       .duration(250)
       .style("opacity", 0);
   }
-}
-
-function findNodeByUuid(node, uuid) {
-  if (node.uuid === uuid) {
-    return node;
-  }
-  if (node.children) {
-    for (var ii = 0; ii < node.children.length; ii++) {
-      var found = findNodeByUuid(node.children[ii], uuid);
-      if (found) {
-        return found;
-      }
-    }
-  }
-  return null;
 }
 
 function cropped(d) {
