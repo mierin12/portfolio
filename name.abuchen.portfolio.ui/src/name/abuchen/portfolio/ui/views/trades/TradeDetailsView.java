@@ -409,7 +409,7 @@ public final class TradeDetailsView extends AbstractFinanceView
         addFilterButton(toolBarManager);
 
         this.clientFilterDropDown = new ClientFilterDropDown(getClient(), getPreferenceStore(),
-                        TradeDetailsView.class.getSimpleName(), filter -> update());
+                        TradeDetailsView.class.getSimpleName(), filter -> update(), false);
         toolBarManager.add(clientFilterDropDown);
 
         toolBarManager.add(new DropDown(Messages.MenuExportData, Images.EXPORT, SWT.NONE,

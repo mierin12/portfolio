@@ -111,6 +111,11 @@ public final class ClientFilterMenu implements IMenuListener
 
     public ClientFilterMenu(Client client, IPreferenceStore preferences)
     {
+        this(client, preferences, true);
+    }
+
+    public ClientFilterMenu(Client client, IPreferenceStore preferences, boolean withReferenceAccount)
+    {
         this.client = client;
         this.preferences = preferences;
         this.filterConfig = client.getSettings()
@@ -123,10 +128,13 @@ public final class ClientFilterMenu implements IMenuListener
         client.getActivePortfolios().forEach(portfolio -> {
             defaultItems.add(new Item(portfolio.getUUID(), portfolio.getName(), portfolio.getUUID(),
                             new PortfolioClientFilter(portfolio)));
+            if (withReferenceAccount)
+            {
             defaultItems.add(new Item(portfolio.getUUID() + "," + portfolio.getReferenceAccount().getUUID(), //$NON-NLS-1$
                             portfolio.getName() + " + " + portfolio.getReferenceAccount().getName(), //$NON-NLS-1$
                             portfolio.getUUID() + "," + portfolio.getReferenceAccount().getUUID(), //$NON-NLS-1$
                             new PortfolioClientFilter(portfolio, portfolio.getReferenceAccount())));
+            }
         });
 
         loadCustomItems();
@@ -134,7 +142,13 @@ public final class ClientFilterMenu implements IMenuListener
 
     public ClientFilterMenu(Client client, IPreferenceStore preferences, Consumer<ClientFilter> listener)
     {
-        this(client, preferences);
+        this(client, preferences, listener, true);
+    }
+
+    public ClientFilterMenu(Client client, IPreferenceStore preferences, Consumer<ClientFilter> listener,
+                    boolean withReferenceAccount)
+    {
+        this(client, preferences, withReferenceAccount);
         this.listeners.add(listener);
     }
 

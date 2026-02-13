@@ -19,10 +19,16 @@ public final class ClientFilterDropDown extends DropDown implements IMenuListene
     public ClientFilterDropDown(Client client, IPreferenceStore preferences, String prefKey,
                     Consumer<ClientFilter> listener)
     {
+        this(client, preferences, prefKey, listener, true);
+    }
+
+    public ClientFilterDropDown(Client client, IPreferenceStore preferences, String prefKey,
+                    Consumer<ClientFilter> listener, boolean withReferenceAccount)
+    {
         super(Messages.MenuChooseClientFilter, Images.GROUPEDACCOUNTS, SWT.NONE);
         setMenuListener(this);
 
-        this.menu = new ClientFilterMenu(client, preferences, listener);
+        this.menu = new ClientFilterMenu(client, preferences, listener, withReferenceAccount);
         this.menu.addListener(filter -> setImage(
                         menu.hasActiveFilter() ? Images.GROUPEDACCOUNTS_ON : Images.GROUPEDACCOUNTS));
 
