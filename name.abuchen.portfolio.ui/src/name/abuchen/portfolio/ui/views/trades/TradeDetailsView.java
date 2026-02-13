@@ -52,6 +52,8 @@ import name.abuchen.portfolio.ui.UIConstants;
 import name.abuchen.portfolio.ui.editor.AbstractFinanceView;
 import name.abuchen.portfolio.ui.selection.SecuritySelection;
 import name.abuchen.portfolio.ui.selection.SelectionService;
+import name.abuchen.portfolio.ui.util.ClientFilterDropDown;
+import name.abuchen.portfolio.ui.util.ClientFilterMenu;
 import name.abuchen.portfolio.ui.util.ContextMenu;
 import name.abuchen.portfolio.ui.util.DropDown;
 import name.abuchen.portfolio.ui.util.LabelOnly;
@@ -189,10 +191,12 @@ public final class TradeDetailsView extends AbstractFinanceView
         private final Taxonomy jobTaxonomy;
         private final boolean hideTotalsAtTheTopJob;
         private final boolean hideTotalsAtTheBottomJob;
+        private final ClientFilterMenu clientFilterMenu;
 
         UpdateTradesJob(Input preselectedInput, boolean useSecCurrency, CurrencyConverter converter, boolean onlyOpen,
                         boolean onlyClosed, boolean onlyProfitable, boolean onlyLossMaking, Pattern filterPattern,
-                        Taxonomy taxonomy, boolean hideTotalsAtTheTop, boolean hideTotalsAtTheBottom)
+                        Taxonomy taxonomy, boolean hideTotalsAtTheTop, boolean hideTotalsAtTheBottom,
+                        ClientFilterDropDown clientFilterDropDown)
         {
             super(Messages.LabelTrades);
             this.preselectedInput = preselectedInput;
@@ -206,6 +210,7 @@ public final class TradeDetailsView extends AbstractFinanceView
             this.jobTaxonomy = taxonomy;
             this.hideTotalsAtTheTopJob = hideTotalsAtTheTop;
             this.hideTotalsAtTheBottomJob = hideTotalsAtTheBottom;
+            this.clientFilterMenu = clientFilterDropDown.getClientFilterMenu();
         }
 
         @Override
@@ -222,7 +227,9 @@ public final class TradeDetailsView extends AbstractFinanceView
                 if (monitor != null && monitor.isCanceled())
                     return Status.CANCEL_STATUS;
 
-                Stream<Trade> filteredTrades = data.getTrades().stream();
+                Stream<Trade> filteredTrades = data.getTrades().stream()
+                                .filter(t -> !clientFilterMenu.hasActiveFilter() || clientFilterMenu.getSelectedItem()
+                                                                .getUUIDs().contains(t.getPortfolio().getUUID()));
 
                 if (onlyClosed)
                     filteredTrades = filteredTrades.filter(Trade::isClosed);
@@ -293,6 +300,7 @@ public final class TradeDetailsView extends AbstractFinanceView
 
     private Input input;
 
+    private ClientFilterDropDown clientFilterDropDown;
     private CurrencyConverter converter;
     private TradesTableViewer table;
     private Taxonomy taxonomy;
@@ -399,6 +407,10 @@ public final class TradeDetailsView extends AbstractFinanceView
         toolBarManager.add(new Separator());
 
         addFilterButton(toolBarManager);
+
+        this.clientFilterDropDown = new ClientFilterDropDown(getClient(), getPreferenceStore(),
+                        TradeDetailsView.class.getSimpleName(), filter -> update());
+        toolBarManager.add(clientFilterDropDown);
 
         toolBarManager.add(new DropDown(Messages.MenuExportData, Images.EXPORT, SWT.NONE,
                         manager -> manager.add(new SimpleAction(Messages.LabelTrades + " (CSV)", //$NON-NLS-1$
@@ -679,7 +691,7 @@ public final class TradeDetailsView extends AbstractFinanceView
         currentUpdateJob = new UpdateTradesJob(preselectedInput, this.useSecurityCurrency, this.converter,
                         this.onlyOpen.isTrue(), this.onlyClosed.isTrue(), this.onlyProfitable.isTrue(),
                         this.onlyLossMaking.isTrue(), this.filterPattern, this.taxonomy, this.hideTotalsAtTheTop,
-                        this.hideTotalsAtTheBottom);
+                        this.hideTotalsAtTheBottom, this.clientFilterDropDown);
         currentUpdateJob.setSystem(true);
         currentUpdateJob.schedule();
     }
