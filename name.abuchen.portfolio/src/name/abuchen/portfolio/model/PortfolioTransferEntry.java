@@ -2,6 +2,8 @@ package name.abuchen.portfolio.model;
 
 import java.time.LocalDateTime;
 
+import name.abuchen.portfolio.snapshot.filter.ReadOnlyPortfolio;
+
 public class PortfolioTransferEntry implements CrossEntry, Annotated
 {
     private Portfolio portfolioFrom;
@@ -32,6 +34,24 @@ public class PortfolioTransferEntry implements CrossEntry, Annotated
 
         this.portfolioFrom = portfolioFrom;
         this.portfolioTo = portfolioTo;
+    }
+
+    @SuppressWarnings("unchecked")
+    public PortfolioTransferEntry unwrap()
+    {
+        Portfolio newPortfolioFrom = portfolioFrom;
+        Portfolio newPortfolioTo = portfolioTo;
+
+        if (this.portfolioFrom instanceof ReadOnlyPortfolio p)
+            newPortfolioFrom = p.unwrap();
+
+        if (this.portfolioTo instanceof ReadOnlyPortfolio p)
+            newPortfolioTo = p.unwrap();
+
+        if (!(this.portfolioFrom instanceof ReadOnlyPortfolio) && !(this.portfolioTo instanceof ReadOnlyPortfolio))
+            return this;
+        else
+            return new PortfolioTransferEntry(newPortfolioFrom, transactionFrom, newPortfolioTo, transactionTo);
     }
 
     public void setSourceTransaction(PortfolioTransaction transaction)

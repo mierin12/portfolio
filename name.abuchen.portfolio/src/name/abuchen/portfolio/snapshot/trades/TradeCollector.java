@@ -115,9 +115,9 @@ public class TradeCollector
                 continue;
 
             @SuppressWarnings("unchecked")
-            TransactionPair<PortfolioTransaction> pair = (TransactionPair<PortfolioTransaction>) txp;
+            TransactionPair<PortfolioTransaction> pair = (TransactionPair<PortfolioTransaction>) txp.unwrap();
 
-            Portfolio portfolio = (Portfolio) txp.getOwner();
+            Portfolio portfolio = (Portfolio) txp.unwrap().getOwner();
             PortfolioTransaction t = (PortfolioTransaction) txp.getTransaction();
             List<TransactionPair<PortfolioTransaction>> openList = openTransactions.computeIfAbsent(portfolio, p -> new ArrayList<>());
 
@@ -234,7 +234,7 @@ public class TradeCollector
     private void moveOpenTransaction(Map<Portfolio, List<TransactionPair<PortfolioTransaction>>> openTransactions,
                     TransactionPair<PortfolioTransaction> pair) throws TradeCollectorException
     {
-        PortfolioTransferEntry transfer = (PortfolioTransferEntry) pair.getTransaction().getCrossEntry();
+        PortfolioTransferEntry transfer = ((PortfolioTransferEntry) pair.getTransaction().getCrossEntry()).unwrap();
         Portfolio outbound = (Portfolio) transfer.getOwner(transfer.getSourceTransaction());
         Portfolio inbound = (Portfolio) transfer.getOwner(transfer.getTargetTransaction());
 
