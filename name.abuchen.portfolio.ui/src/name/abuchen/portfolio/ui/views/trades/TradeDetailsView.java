@@ -227,7 +227,9 @@ public final class TradeDetailsView extends AbstractFinanceView
                 if (monitor != null && monitor.isCanceled())
                     return Status.CANCEL_STATUS;
 
-                Stream<Trade> filteredTrades = data.getTrades().stream();
+                Stream<Trade> filteredTrades = data.getTrades().stream()
+                                .filter(t -> !clientFilterMenu.hasActiveFilter() || clientFilterMenu.getSelectedItem()
+                                                                .getUUIDs().contains(t.getPortfolio().getUUID()));
 
                 if (onlyClosed)
                     filteredTrades = filteredTrades.filter(Trade::isClosed);
@@ -407,7 +409,7 @@ public final class TradeDetailsView extends AbstractFinanceView
         addFilterButton(toolBarManager);
 
         this.clientFilterDropDown = new ClientFilterDropDown(getClient(), getPreferenceStore(),
-                        TradeDetailsView.class.getSimpleName(), filter -> notifyModelUpdated(), false);
+                        TradeDetailsView.class.getSimpleName(), filter -> update(), false);
         toolBarManager.add(clientFilterDropDown);
 
         toolBarManager.add(new DropDown(Messages.MenuExportData, Images.EXPORT, SWT.NONE,
@@ -815,8 +817,7 @@ public final class TradeDetailsView extends AbstractFinanceView
                 CurrencyConverter converterToUse = useSecCurrency && s.getCurrencyCode() != null
                                 ? currentConverter.with(s.getCurrencyCode())
                                 : currentConverter;
-                var collector = new TradeCollector(clientFilterDropDown.getSelectedFilter().filter(getClient()),
-                                converterToUse);
+                var collector = new TradeCollector(getClient(), converterToUse);
                 trades.addAll(collector.collect(s));
             }
             catch (TradeCollectorException e)
