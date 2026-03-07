@@ -1164,24 +1164,28 @@ public class SecuritiesPerformanceView extends AbstractFinanceView implements Re
 
         // isin
         column = new IsinColumn();
+        column.setGroupLabel(Messages.ColumnSecurity);
         column.getEditingSupport().addListener(new TouchClientListener(getClient()));
         column.setVisible(false);
         recordColumns.addColumn(column);
 
         // ticker
         column = new SymbolColumn();
+        column.setGroupLabel(Messages.ColumnSecurity);
         column.getEditingSupport().addListener(new TouchClientListener(getClient()));
         column.setVisible(false);
         recordColumns.addColumn(column);
 
         // wkn
         column = new WknColumn();
+        column.setGroupLabel(Messages.ColumnSecurity);
         column.getEditingSupport().addListener(new TouchClientListener(getClient()));
         column.setVisible(false);
         recordColumns.addColumn(column);
 
         // note
         column = new NoteColumn();
+        column.setGroupLabel(Messages.ColumnSecurity);
         column.getEditingSupport().addListener(new TouchClientListener(getClient()));
         column.setVisible(false);
         recordColumns.addColumn(column);

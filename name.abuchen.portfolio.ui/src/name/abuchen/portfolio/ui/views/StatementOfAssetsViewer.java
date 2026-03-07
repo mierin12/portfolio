@@ -479,17 +479,20 @@ public class StatementOfAssetsViewer
         support.addColumn(column);
 
         column = new IsinColumn("3"); //$NON-NLS-1$
+        column.setGroupLabel(Messages.ColumnSecurity);
         column.getEditingSupport().addListener(new TouchClientListener(client));
         column.getSorter().wrap(ElementComparator::new);
         column.setVisible(false);
         support.addColumn(column);
 
         column = new SymbolColumn("2"); //$NON-NLS-1$
+        column.setGroupLabel(Messages.ColumnSecurity);
         column.getEditingSupport().addListener(new TouchClientListener(client));
         column.getSorter().wrap(ElementComparator::new);
         support.addColumn(column);
 
         column = new WknColumn("12"); //$NON-NLS-1$
+        column.setGroupLabel(Messages.ColumnSecurity);
         column.getEditingSupport().addListener(new TouchClientListener(client));
         column.getSorter().wrap(ElementComparator::new);
         column.setVisible(false);
