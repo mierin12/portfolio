@@ -1147,24 +1147,6 @@ public class StatementOfAssetsViewer
 
     public void menuAboutToShow(IMenuManager manager)
     {
-        manager.add(new LabelOnly(Messages.LabelTaxonomies));
-
-        var noneAction = new SimpleAction(Messages.LabelUseNoTaxonomy, a -> {
-            taxonomy = null;
-            setInput(model.clientFilter, model.getDate(), model.getCurrencyConverter());
-        });
-        noneAction.setChecked(taxonomy == null);
-        manager.add(noneAction);
-
-        for (final Taxonomy t : client.getTaxonomies())
-        {
-            manager.add(new MenuContribution(t.getName(), () -> {
-                taxonomy = t;
-                setInput(model.clientFilter, model.getDate(), model.getCurrencyConverter());
-            }, t.equals(taxonomy)));
-        }
-
-        manager.add(new Separator());
         manager.add(new LabelOnly(Messages.LabelColumns));
         support.menuAboutToShow(manager);
 
@@ -1193,6 +1175,26 @@ public class StatementOfAssetsViewer
         action.setChecked(!model.isHideTotalsAtTheBottom());
         submenu.add(action);
 
+    }
+
+    public void taxonomyMenuAboutToShow(IMenuManager manager)
+    {
+        manager.add(new LabelOnly(Messages.LabelTaxonomies));
+
+        var noneAction = new SimpleAction(Messages.LabelUseNoTaxonomy, a -> {
+            taxonomy = null;
+            setInput(model.clientFilter, model.getDate(), model.getCurrencyConverter());
+        });
+        noneAction.setChecked(taxonomy == null);
+        manager.add(noneAction);
+
+        for (final Taxonomy t : client.getTaxonomies())
+        {
+            manager.add(new MenuContribution(t.getName(), () -> {
+                taxonomy = t;
+                setInput(model.clientFilter, model.getDate(), model.getCurrencyConverter());
+            }, t.equals(taxonomy)));
+        }
     }
 
     public void setInput(ClientFilter filter, LocalDate date, CurrencyConverter converter)

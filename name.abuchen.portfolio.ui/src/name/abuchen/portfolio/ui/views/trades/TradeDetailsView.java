@@ -400,6 +400,9 @@ public final class TradeDetailsView extends AbstractFinanceView
 
         addFilterButton(toolBarManager);
 
+        toolBarManager.add(new DropDown("Organize by taxonomy", Images.VIEW_TABLE, SWT.NONE,
+                        manager -> taxonomyMenuAboutToShow(manager)));
+
         toolBarManager.add(new DropDown(Messages.MenuExportData, Images.EXPORT, SWT.NONE,
                         manager -> manager.add(new SimpleAction(Messages.LabelTrades + " (CSV)", //$NON-NLS-1$
                                         a -> new TableViewerCSVExporter(table.getTableViewer())
@@ -408,26 +411,6 @@ public final class TradeDetailsView extends AbstractFinanceView
 
         toolBarManager.add(new DropDown(Messages.MenuShowHideColumns, Images.CONFIG, SWT.NONE, manager -> {
 
-            manager.add(new LabelOnly(Messages.LabelTaxonomies));
-
-            var noneAction = new SimpleAction(Messages.LabelUseNoTaxonomy, a -> {
-                taxonomy = null;
-                getPreferenceStore().setValue(PREF_TAXONOMY, PREF_TAXONOMY_NONE);
-                update();
-            });
-            noneAction.setChecked(taxonomy == null);
-            manager.add(noneAction);
-
-            for (final Taxonomy t : getClient().getTaxonomies())
-            {
-                manager.add(new MenuContribution(t.getName(), () -> {
-                    taxonomy = t;
-                    getPreferenceStore().setValue(PREF_TAXONOMY, t.getId());
-                    update();
-                }, t.equals(taxonomy)));
-            }
-
-            manager.add(new Separator());
             manager.add(new LabelOnly(Messages.LabelColumns));
 
             table.getShowHideColumnHelper().menuAboutToShow(manager);
@@ -448,6 +431,28 @@ public final class TradeDetailsView extends AbstractFinanceView
 
             manager.add(action);
         }));
+    }
+
+    private void taxonomyMenuAboutToShow(IMenuManager manager)
+    {
+        manager.add(new LabelOnly(Messages.LabelTaxonomies));
+
+        var noneAction = new SimpleAction(Messages.LabelUseNoTaxonomy, a -> {
+            taxonomy = null;
+            getPreferenceStore().setValue(PREF_TAXONOMY, PREF_TAXONOMY_NONE);
+            update();
+        });
+        noneAction.setChecked(taxonomy == null);
+        manager.add(noneAction);
+
+        for (final Taxonomy t : getClient().getTaxonomies())
+        {
+            manager.add(new MenuContribution(t.getName(), () -> {
+                taxonomy = t;
+                getPreferenceStore().setValue(PREF_TAXONOMY, t.getId());
+                update();
+            }, t.equals(taxonomy)));
+        }
     }
 
     private void updateFilterButtonImage(DropDown dropDown)
