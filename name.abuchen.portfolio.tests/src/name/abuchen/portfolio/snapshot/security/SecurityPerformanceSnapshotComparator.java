@@ -107,7 +107,8 @@ public class SecurityPerformanceSnapshotComparator
         assertThat(left.getCapitalGainsOnHoldingsMovingAveragePercent(),
                         is(right.getCapitalGainsOnHoldingsPercent(CostMethod.MOVING_AVERAGE)));
 
-        assertThat(left.getCostPerSharesHeld(CostMethod.FIFO), is(right.getCostPerSharesHeld(CostMethod.FIFO)));
+        assertThat(left.getCostPerSharesHeld(CostMethod.FIFO),
+                        is(right.getCostPerSharesHeld(CostMethod.FIFO, TaxesAndFees.NOT_INCLUDED)));
 
         assertThat(left.getSharesHeld(), is(right.getSharesHeld()));
         assertThat(left.getFees(), is(right.getFees()));

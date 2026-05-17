@@ -1205,9 +1205,11 @@ public class SecuritiesPerformanceView extends AbstractFinanceView implements Re
                         + Messages.DescriptionDataRelativeToReportingPeriod);
         column.setImage(Images.INTERVAL);
         column.setLabelProvider(new RowElementLabelProvider(r -> Values.CalculatedQuote
-                        .format(r.getCostPerSharesHeld(CostMethod.FIFO), getClient().getBaseCurrency())));
+                        .format(r.getCostPerSharesHeld(CostMethod.FIFO, TaxesAndFees.NOT_INCLUDED),
+                                        getClient().getBaseCurrency())));
         column.setSorter(ColumnViewerSorter
-                        .create(e -> ((LazySecurityPerformanceRecord) e).getCostPerSharesHeld(CostMethod.FIFO)));
+                        .create(e -> ((LazySecurityPerformanceRecord) e).getCostPerSharesHeld(CostMethod.FIFO,
+                                        TaxesAndFees.NOT_INCLUDED)));
         recordColumns.addColumn(column);
 
         // cost value per share - moving average
@@ -1218,9 +1220,11 @@ public class SecuritiesPerformanceView extends AbstractFinanceView implements Re
                         + Messages.DescriptionDataRelativeToReportingPeriod);
         column.setImage(Images.INTERVAL);
         column.setLabelProvider(new RowElementLabelProvider(r -> Values.CalculatedQuote
-                        .format(r.getCostPerSharesHeld(CostMethod.MOVING_AVERAGE), getClient().getBaseCurrency())));
+                        .format(r.getCostPerSharesHeld(CostMethod.MOVING_AVERAGE, TaxesAndFees.NOT_INCLUDED),
+                                        getClient().getBaseCurrency())));
         column.setSorter(ColumnViewerSorter.create(
-                        e -> ((LazySecurityPerformanceRecord) e).getCostPerSharesHeld(CostMethod.MOVING_AVERAGE)));
+                        e -> ((LazySecurityPerformanceRecord) e).getCostPerSharesHeld(CostMethod.MOVING_AVERAGE,
+                                        TaxesAndFees.NOT_INCLUDED)));
         column.setVisible(false);
         recordColumns.addColumn(column);
 
@@ -1233,9 +1237,11 @@ public class SecuritiesPerformanceView extends AbstractFinanceView implements Re
                         + Messages.DescriptionDataRelativeToReportingPeriod);
         column.setImage(Images.INTERVAL);
         column.setLabelProvider(new RowElementLabelProvider(r -> Values.CalculatedQuote
-                        .format(r.getGrossCostPerSharesHeld(CostMethod.FIFO), getClient().getBaseCurrency())));
+                        .format(r.getCostPerSharesHeld(CostMethod.FIFO, TaxesAndFees.INCLUDED),
+                                        getClient().getBaseCurrency())));
         column.setSorter(ColumnViewerSorter
-                        .create(e -> ((LazySecurityPerformanceRecord) e).getGrossCostPerSharesHeld(CostMethod.FIFO)));
+                        .create(e -> ((LazySecurityPerformanceRecord) e).getCostPerSharesHeld(CostMethod.FIFO,
+                                        TaxesAndFees.INCLUDED)));
         recordColumns.addColumn(column);
 
         // cost value per share including fees and taxes - moving average
@@ -1246,9 +1252,11 @@ public class SecuritiesPerformanceView extends AbstractFinanceView implements Re
                         + Messages.DescriptionDataRelativeToReportingPeriod);
         column.setImage(Images.INTERVAL);
         column.setLabelProvider(new RowElementLabelProvider(r -> Values.CalculatedQuote.format(
-                        r.getGrossCostPerSharesHeld(CostMethod.MOVING_AVERAGE), getClient().getBaseCurrency())));
+                        r.getCostPerSharesHeld(CostMethod.MOVING_AVERAGE, TaxesAndFees.INCLUDED),
+                        getClient().getBaseCurrency())));
         column.setSorter(ColumnViewerSorter.create(
-                        e -> ((LazySecurityPerformanceRecord) e).getGrossCostPerSharesHeld(CostMethod.MOVING_AVERAGE)));
+                        e -> ((LazySecurityPerformanceRecord) e).getCostPerSharesHeld(CostMethod.MOVING_AVERAGE,
+                                        TaxesAndFees.INCLUDED)));
         column.setVisible(false);
         recordColumns.addColumn(column);
     }
