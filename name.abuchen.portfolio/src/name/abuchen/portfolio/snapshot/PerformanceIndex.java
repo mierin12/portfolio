@@ -25,6 +25,7 @@ import name.abuchen.portfolio.model.Account;
 import name.abuchen.portfolio.model.AccountTransaction;
 import name.abuchen.portfolio.model.Classification;
 import name.abuchen.portfolio.model.Client;
+import name.abuchen.portfolio.model.CostMethod;
 import name.abuchen.portfolio.model.Portfolio;
 import name.abuchen.portfolio.model.PortfolioTransaction;
 import name.abuchen.portfolio.model.Security;
@@ -256,30 +257,34 @@ public class PerformanceIndex
      */
     public Optional<ClientPerformanceSnapshot> getClientPerformanceSnapshot()
     {
-        return getClientPerformanceSnapshot(true);
+        return getClientPerformanceSnapshot(CostMethod.FIFO);
     }
 
     /**
      * Returns the ClientPerformanceSnapshot if available with a choice between
-     * FIFO (useFifo true) or Moving Average (useFifo = false) CapitalGains. The
-     * snapshot is not available for benchmarks and the consumer price indices.
+     * FIFO (CostMethod.FIFO) or Moving Average (CostMethod.MOVING_AVERAGE)
+     * CapitalGains. The snapshot is not available for benchmarks and the
+     * consumer price indices.
      */
-    public Optional<ClientPerformanceSnapshot> getClientPerformanceSnapshot(boolean useFifo)
+    public Optional<ClientPerformanceSnapshot> getClientPerformanceSnapshot(CostMethod costMethod)
     {
-        if (useFifo)
+        return switch (costMethod)
         {
-            if (performanceSnapshotFifo == null)
-                performanceSnapshotFifo = new ClientPerformanceSnapshot(client, converter, reportInterval, true);
+            case FIFO -> {
+                if (performanceSnapshotFifo == null)
+                    performanceSnapshotFifo = new ClientPerformanceSnapshot(client, converter, reportInterval,
+                                    costMethod);
 
-            return Optional.of(performanceSnapshotFifo);
-        }
-        else
-        {
-            if (performanceSnapshotMovingAverage == null)
-                performanceSnapshotMovingAverage = new ClientPerformanceSnapshot(client, converter, reportInterval,
-                                false);
-            return Optional.of(performanceSnapshotMovingAverage);
-        }
+                yield Optional.of(performanceSnapshotFifo);
+            }
+            case MOVING_AVERAGE -> {
+                if (performanceSnapshotMovingAverage == null)
+                    performanceSnapshotMovingAverage = new ClientPerformanceSnapshot(client, converter, reportInterval,
+                                    costMethod);
+
+                yield Optional.of(performanceSnapshotMovingAverage);
+            }
+        };
     }
 
     public double getPerformanceIRR()

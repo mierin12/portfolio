@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 
 import name.abuchen.portfolio.model.Client;
+import name.abuchen.portfolio.model.CostMethod;
 import name.abuchen.portfolio.model.Dashboard;
 import name.abuchen.portfolio.model.Dashboard.Widget;
 import name.abuchen.portfolio.model.Security;
@@ -276,8 +277,8 @@ public class PerformanceCalculationWidget extends WidgetDelegate<ClientPerforman
         return () -> {
             PerformanceIndex index = getDashboardData().calculate(get(DataSeriesConfig.class).getDataSeries(),
                             get(ReportingPeriodConfig.class).getReportingPeriod().toInterval(LocalDate.now()));
-            boolean useFifo = get(CostMethodConfig.class).getValue().useFifo();
-            return index.getClientPerformanceSnapshot(useFifo).orElseThrow(IllegalArgumentException::new);
+            CostMethod costMethod = get(CostMethodConfig.class).getValue();
+            return index.getClientPerformanceSnapshot(costMethod).orElseThrow(IllegalArgumentException::new);
         };
     }
 

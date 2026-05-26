@@ -103,7 +103,7 @@ public class PerformanceView extends AbstractHistoricView
     private ClientFilterDropDown clientFilter;
 
     private boolean preTax = false;
-    private boolean useFifo = true;
+    private CostMethod costMethod = CostMethod.FIFO;
 
     private TreeViewer calculation;
     private StatementOfAssetsViewer snapshotStart;
@@ -147,19 +147,19 @@ public class PerformanceView extends AbstractHistoricView
             manager.add(new LabelOnly(Messages.LabelCapitalGainsMethod));
 
             SimpleAction useFifoAction = new SimpleAction(CostMethod.FIFO.getLabel(), a -> {
-                this.useFifo = true;
-                getPreferenceStore().setValue(CAPITAL_GAIN_USE_FIFO, String.valueOf(useFifo));
+                this.costMethod = CostMethod.FIFO;
+                getPreferenceStore().setValue(CAPITAL_GAIN_USE_FIFO, String.valueOf(costMethod.useFifo()));
                 reportingPeriodUpdated();
             });
-            useFifoAction.setChecked(this.useFifo);
+            useFifoAction.setChecked(this.costMethod.useFifo());
             manager.add(useFifoAction);
 
             SimpleAction movingAverageMethod = new SimpleAction(CostMethod.MOVING_AVERAGE.getLabel(), a -> {
-                this.useFifo = false;
-                getPreferenceStore().setValue(CAPITAL_GAIN_USE_FIFO, String.valueOf(useFifo));
+                this.costMethod = CostMethod.MOVING_AVERAGE;
+                getPreferenceStore().setValue(CAPITAL_GAIN_USE_FIFO, String.valueOf(costMethod.useFifo()));
                 reportingPeriodUpdated();
             });
-            movingAverageMethod.setChecked(!this.useFifo);
+            movingAverageMethod.setChecked(!this.costMethod.useFifo());
             manager.add(movingAverageMethod);
         }));
     }
@@ -176,7 +176,8 @@ public class PerformanceView extends AbstractHistoricView
 
         setToContext(UIConstants.Context.FILTERED_CLIENT, filteredClient);
 
-        ClientPerformanceSnapshot snapshot = new ClientPerformanceSnapshot(filteredClient, converter, period, useFifo);
+        ClientPerformanceSnapshot snapshot = new ClientPerformanceSnapshot(filteredClient, converter, period,
+                        costMethod);
 
         try
         {
@@ -235,7 +236,7 @@ public class PerformanceView extends AbstractHistoricView
         {
             try
             {
-                this.useFifo = Boolean.valueOf(capitalGainMethod);
+                this.costMethod = Boolean.valueOf(capitalGainMethod) ? CostMethod.FIFO : CostMethod.MOVING_AVERAGE;
             }
             catch (IllegalArgumentException e)
             {
